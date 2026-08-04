@@ -4,7 +4,7 @@ import { cn } from '../../lib/utils'
 
 const links = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/admin/courses', label: 'Courses', icon: BookOpen },
+  { to: '/admin/courses', label: 'Courses', icon: BookOpen, end: true },
   { to: '/admin/courses/new', label: 'Create Course', icon: FolderPlus },
   { to: '/admin/upload', label: 'Upload Video', icon: BarChart3 },
   { to: '/admin/users', label: 'Users', icon: Users },
