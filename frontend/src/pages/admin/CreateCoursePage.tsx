@@ -7,9 +7,11 @@ import { Label } from '../../components/ui/label'
 import { Spinner } from '../../components/ui/spinner'
 import { Textarea } from '../../components/ui/textarea'
 import { useCourses } from '../../hooks/useCourses'
+import { usePageTitle } from '../../hooks/usePageTitle'
 import { createCourseSchema, type CreateCourseInput } from '../../validations/course'
 
 export const CreateCoursePage = () => {
+  usePageTitle('Create Course')
   const { createCourse, isCreating } = useCourses()
   const navigate = useNavigate()
 

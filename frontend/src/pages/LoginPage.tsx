@@ -4,9 +4,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
+import { PasswordInput } from '../components/ui/password-input'
 import { Spinner } from '../components/ui/spinner'
 import { SocialButtons } from '../components/auth/SocialButtons'
 import { useAuth } from '../hooks/useAuth'
+import { usePageTitle } from '../hooks/usePageTitle'
 import { loginSchema, type LoginInput } from '../validations/auth'
 import type { AxiosError } from 'axios'
 
@@ -15,6 +17,7 @@ interface ErrorResponse {
 }
 
 export const LoginPage = () => {
+  usePageTitle('Login')
   const { login, isLoggingIn } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -68,7 +71,7 @@ export const LoginPage = () => {
 
       <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
-        <Input id="password" type="password" placeholder="••••••••" autoComplete="current-password" {...register('password')} />
+        <PasswordInput id="password" placeholder="••••••••" autoComplete="current-password" {...register('password')} />
         {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
       </div>
 

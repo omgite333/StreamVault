@@ -3,8 +3,10 @@ import { useProgress } from '../hooks/useProgress'
 import { Card, CardContent } from '../components/ui/card'
 import { Skeleton } from '../components/ui/skeleton'
 import { ContinueWatchingItem } from '../components/course/ContinueWatchingItem'
+import { usePageTitle } from '../hooks/usePageTitle'
 
 export const ContinueWatchingPage = () => {
+  usePageTitle('Continue Watching')
   const { progress, isLoading } = useProgress()
 
   const watched = progress?.filter((p) => p.lastTimestamp > 0) ?? []

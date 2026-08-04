@@ -7,10 +7,15 @@ import { Badge } from '../../components/ui/badge'
 import { Button } from '../../components/ui/button'
 import { Skeleton } from '../../components/ui/skeleton'
 import { formatDate } from '../../lib/utils'
+import { getErrorMessage } from '../../lib/utils'
+import { useToast } from '../../components/ui/toast-context'
+import { usePageTitle } from '../../hooks/usePageTitle'
 import type { User } from '../../types'
 
 export const ManageUsersPage = () => {
+  usePageTitle('Manage Users')
   const queryClient = useQueryClient()
+  const { toast } = useToast()
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['users'],
@@ -19,7 +24,16 @@ export const ManageUsersPage = () => {
 
   const roleMutation = useMutation({
     mutationFn: ({ id, role }: { id: string; role: User['role'] }) => adminService.updateUserRole(id, role),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+    onSuccess: (_, { role }) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      toast({
+        title: role === 'ADMIN' ? 'User promoted to admin' : 'User demoted to student',
+        variant: 'success',
+      })
+    },
+    onError: (error) => {
+      toast({ title: 'Could not update role', description: getErrorMessage(error), variant: 'error' })
+    },
   })
 
   const toggleRole = (user: User) => {

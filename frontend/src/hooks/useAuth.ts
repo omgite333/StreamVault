@@ -1,10 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { authService, type UpdateProfilePayload, type ChangePasswordPayload } from '../services/auth.service'
+import { useToast } from '../components/ui/toast-context'
 import { useAuthStore } from '../store/auth.store'
 import type { LoginInput, RegisterInput } from '../validations/auth'
 
 export const useAuth = () => {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const { user, accessToken, isAuthenticated, setAuth, setUser, logout } = useAuthStore()
 
   const loginMutation = useMutation({
@@ -12,6 +14,7 @@ export const useAuth = () => {
     onSuccess: ({ data }) => {
       setAuth(data.data.user, data.data.accessToken)
       queryClient.setQueryData(['me'], data.data.user)
+      toast({ title: 'Welcome back', variant: 'success' })
     },
   })
 
@@ -20,6 +23,7 @@ export const useAuth = () => {
     onSuccess: ({ data }) => {
       setAuth(data.data.user, data.data.accessToken)
       queryClient.setQueryData(['me'], data.data.user)
+      toast({ title: 'Account created', description: 'You are now signed in.', variant: 'success' })
     },
   })
 
@@ -28,6 +32,7 @@ export const useAuth = () => {
     onSuccess: () => {
       logout()
       queryClient.clear()
+      toast({ title: 'Signed out', description: 'See you soon!', variant: 'info' })
     },
   })
 
@@ -36,11 +41,15 @@ export const useAuth = () => {
     onSuccess: ({ data }) => {
       setUser(data.data.user)
       queryClient.setQueryData(['me'], data.data.user)
+      toast({ title: 'Profile updated', variant: 'success' })
     },
   })
 
   const changePasswordMutation = useMutation({
     mutationFn: (payload: ChangePasswordPayload) => authService.changePassword(payload),
+    onSuccess: () => {
+      toast({ title: 'Password changed', variant: 'success' })
+    },
   })
 
   const meQuery = useQuery({

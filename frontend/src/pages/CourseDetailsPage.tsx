@@ -8,6 +8,9 @@ import { videoService } from '../services/video.service'
 import { VideoGridCard } from '../components/course/VideoGridCard'
 import { Badge } from '../components/ui/badge'
 import { Skeleton } from '../components/ui/skeleton'
+import { useToast } from '../components/ui/toast-context'
+import { usePageTitle } from '../hooks/usePageTitle'
+import { getErrorMessage } from '../lib/utils'
 import type { Video } from '../types'
 
 export const CourseDetailsPage = () => {
@@ -15,24 +18,36 @@ export const CourseDetailsPage = () => {
   const { data: course, isLoading } = useCourse(courseId)
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { toast } = useToast()
+  usePageTitle(course?.title)
 
   const canEdit = user?.role === 'ADMIN'
 
   const handleThumbnail = async (video: Video, file: File) => {
-    const fileType = file.type || 'image/png'
-    const { data } = await uploadService.getUploadUrl({ fileType, folder: 'thumbnails' })
-    const { url, key } = data.data
-    const response = await uploadService.putObject(url, file, fileType)
-    if (!response.ok) {
-      throw new Error('Thumbnail upload failed.')
+    try {
+      const fileType = file.type || 'image/png'
+      const { data } = await uploadService.getUploadUrl({ fileType, folder: 'thumbnails' })
+      const { url, key } = data.data
+      const response = await uploadService.putObject(url, file, fileType)
+      if (!response.ok) {
+        throw new Error('Thumbnail upload failed.')
+      }
+      await videoService.update(video.id, { thumbnail: key })
+      queryClient.invalidateQueries({ queryKey: ['course', courseId] })
+      toast({ title: 'Thumbnail updated', variant: 'success' })
+    } catch (error) {
+      toast({ title: 'Could not update thumbnail', description: getErrorMessage(error), variant: 'error' })
     }
-    await videoService.update(video.id, { thumbnail: key })
-    queryClient.invalidateQueries({ queryKey: ['course', courseId] })
   }
 
   const handleRemove = async (video: Video) => {
-    await videoService.remove(video.id)
-    queryClient.invalidateQueries({ queryKey: ['course', courseId] })
+    try {
+      await videoService.remove(video.id)
+      queryClient.invalidateQueries({ queryKey: ['course', courseId] })
+      toast({ title: 'Video removed', variant: 'success' })
+    } catch (error) {
+      toast({ title: 'Could not remove video', description: getErrorMessage(error), variant: 'error' })
+    }
   }
 
   if (isLoading) {

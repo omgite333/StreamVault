@@ -10,6 +10,9 @@ import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
 import { Textarea } from '../../components/ui/textarea'
 import { Spinner } from '../../components/ui/spinner'
+import { useToast } from '../../components/ui/toast-context'
+import { getErrorMessage } from '../../lib/utils'
+import { usePageTitle } from '../../hooks/usePageTitle'
 
 type UploadStatus = 'idle' | 'uploading' | 'finalizing' | 'done' | 'error'
 
@@ -33,7 +36,9 @@ const inputClass =
   'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm'
 
 export const UploadVideoPage = () => {
+  usePageTitle('Upload Video')
   const { courses, isLoading: loadingCourses } = useCourses()
+  const { toast } = useToast()
 
   const [courseId, setCourseId] = useState('')
   const [title, setTitle] = useState('')
@@ -116,9 +121,16 @@ export const UploadVideoPage = () => {
       })
 
       setStatus('done')
+      toast({
+        title: 'Video uploaded',
+        description: `"${title.trim()}" is now live in the course.`,
+        variant: 'success',
+      })
     } catch (e) {
       setStatus('error')
-      setError(e instanceof Error ? e.message : 'Upload failed. Please try again.')
+      const message = getErrorMessage(e, 'Upload failed. Please try again.')
+      setError(message)
+      toast({ title: 'Upload failed', description: message, variant: 'error' })
     }
   }
 

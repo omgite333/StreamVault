@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom'
 import { Button } from '../components/ui/button'
+import { usePageTitle } from '../hooks/usePageTitle'
 
-export const NotFoundPage = () => (
+export const NotFoundPage = () => {
+  usePageTitle('Page not found')
+  return (
   <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
     <p className="text-7xl font-extrabold text-primary/30">404</p>
     <h1 className="text-2xl font-bold">Page not found</h1>
@@ -12,4 +15,5 @@ export const NotFoundPage = () => (
       <Button>Back to Home</Button>
     </Link>
   </div>
-)
+  )
+}

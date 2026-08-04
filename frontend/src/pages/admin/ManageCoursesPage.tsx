@@ -5,8 +5,10 @@ import { Card, CardContent } from '../../components/ui/card'
 import { Button } from '../../components/ui/button'
 import { Skeleton } from '../../components/ui/skeleton'
 import { formatDate } from '../../lib/utils'
+import { usePageTitle } from '../../hooks/usePageTitle'
 
 export const ManageCoursesPage = () => {
+  usePageTitle('Manage Courses')
   const { courses, isLoading, deleteCourse, isDeleting } = useCourses()
 
   return (

@@ -7,11 +7,14 @@ import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
+import { PasswordInput } from '../components/ui/password-input'
 import { Badge } from '../components/ui/badge'
 import { Spinner } from '../components/ui/spinner'
 import { formatDate } from '../lib/utils'
+import { usePageTitle } from '../hooks/usePageTitle'
 
 export const ProfilePage = () => {
+  usePageTitle('Profile')
   const user = useAuthStore((s) => s.user)
   const { updateProfile, changePassword, isUpdatingProfile, isChangingPassword } = useAuth()
   const avatarInputRef = useRef<HTMLInputElement>(null)
@@ -25,7 +28,6 @@ export const ProfilePage = () => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPasswordForm, setShowPasswordForm] = useState(false)
   const [passwordError, setPasswordError] = useState('')
-  const [passwordMsg, setPasswordMsg] = useState('')
 
   if (!user) return null
 
@@ -40,7 +42,6 @@ export const ProfilePage = () => {
       const response = await uploadService.putObject(url, file, fileType)
       if (!response.ok) throw new Error('Avatar upload failed.')
       await updateProfile({ profileImage: key })
-      setProfileMsg('Profile picture updated.')
     } catch (e) {
       setProfileMsg(e instanceof Error ? e.message : 'Avatar upload failed.')
     } finally {
@@ -53,7 +54,6 @@ export const ProfilePage = () => {
     setProfileMsg('')
     try {
       await updateProfile({ name: name.trim() })
-      setProfileMsg('Name updated.')
     } catch (err) {
       setProfileMsg(err instanceof Error ? err.message : 'Could not update name.')
     }
@@ -62,14 +62,12 @@ export const ProfilePage = () => {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setPasswordError('')
-    setPasswordMsg('')
     if (newPassword !== confirmPassword) {
       setPasswordError('New passwords do not match.')
       return
     }
     try {
       await changePassword({ currentPassword, newPassword })
-      setPasswordMsg('Password changed successfully.')
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
@@ -176,7 +174,6 @@ export const ProfilePage = () => {
                 variant="outline"
                 onClick={() => {
                   setPasswordError('')
-                  setPasswordMsg('')
                   setShowPasswordForm(true)
                 }}
                 className="w-full"
@@ -188,9 +185,8 @@ export const ProfilePage = () => {
               <form onSubmit={handlePasswordSubmit} className="space-y-3">
                 <div className="space-y-2">
                   <Label htmlFor="currentPassword">Current password</Label>
-                  <Input
+                  <PasswordInput
                     id="currentPassword"
-                    type="password"
                     autoComplete="current-password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
@@ -198,9 +194,8 @@ export const ProfilePage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="newPassword">New password</Label>
-                  <Input
+                  <PasswordInput
                     id="newPassword"
-                    type="password"
                     autoComplete="new-password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
@@ -208,16 +203,14 @@ export const ProfilePage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirm new password</Label>
-                  <Input
+                  <PasswordInput
                     id="confirmPassword"
-                    type="password"
                     autoComplete="new-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
                 </div>
                 {passwordError && <p className="text-xs text-destructive">{passwordError}</p>}
-                {passwordMsg && <p className="text-xs text-success">{passwordMsg}</p>}
                 <div className="flex gap-2">
                   <Button type="submit" disabled={isChangingPassword}>
                     {isChangingPassword && <Spinner />}

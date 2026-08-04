@@ -5,6 +5,7 @@ import { adminService } from '../../services/admin.service'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { Button } from '../../components/ui/button'
 import { Skeleton } from '../../components/ui/skeleton'
+import { usePageTitle } from '../../hooks/usePageTitle'
 
 const quickActions = [
   { to: '/admin/courses/new', label: 'Create Course', icon: FolderPlus },
@@ -14,6 +15,7 @@ const quickActions = [
 ]
 
 export const AdminDashboardPage = () => {
+  usePageTitle('Admin Dashboard')
   const { data, isLoading } = useQuery({
     queryKey: ['analytics'],
     queryFn: async () => (await adminService.getAnalytics()).data.data,

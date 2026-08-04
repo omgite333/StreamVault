@@ -4,8 +4,10 @@ import { CourseCard } from '../components/course/CourseCard'
 import { Skeleton } from '../components/ui/skeleton'
 import { Input } from '../components/ui/input'
 import { useCourses } from '../hooks/useCourses'
+import { usePageTitle } from '../hooks/usePageTitle'
 
 export const CourseListPage = () => {
+  usePageTitle('Courses')
   const { courses, isLoading } = useCourses()
   const [query, setQuery] = useState('')
 

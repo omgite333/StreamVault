@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { BookOpen, Download, PlayCircle, ShieldCheck, TrendingUp } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
+import { usePageTitle } from '../hooks/usePageTitle'
 
 const features = [
   {
@@ -26,7 +27,9 @@ const features = [
   },
 ]
 
-export const HomePage = () => (
+export const HomePage = () => {
+  usePageTitle('Home')
+  return (
   <div>
     <section className="border-b bg-gradient-to-b from-accent/60 to-background">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 py-20 text-center sm:px-6">
@@ -74,4 +77,5 @@ export const HomePage = () => (
       </div>
     </section>
   </div>
-)
+  )
+}

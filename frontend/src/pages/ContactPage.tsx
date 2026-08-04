@@ -1,7 +1,10 @@
 import { Mail, MessageCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { usePageTitle } from '../hooks/usePageTitle'
 
-export const ContactPage = () => (
+export const ContactPage = () => {
+  usePageTitle('Contact')
+  return (
   <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
     <h1 className="mb-8 text-3xl font-bold">Contact Us</h1>
     <div className="grid gap-6 sm:grid-cols-2">
@@ -31,4 +34,5 @@ export const ContactPage = () => (
       </Card>
     </div>
   </div>
-)
+  )
+}

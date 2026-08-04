@@ -3,8 +3,10 @@ import { BarChart3, BookOpen, PlayCircle, Users } from 'lucide-react'
 import { adminService } from '../../services/admin.service'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { Skeleton } from '../../components/ui/skeleton'
+import { usePageTitle } from '../../hooks/usePageTitle'
 
 export const AnalyticsPage = () => {
+  usePageTitle('Analytics')
   const { data, isLoading } = useQuery({
     queryKey: ['analytics'],
     queryFn: async () => (await adminService.getAnalytics()).data.data,

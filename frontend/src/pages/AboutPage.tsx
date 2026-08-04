@@ -1,4 +1,8 @@
-export const AboutPage = () => (
+import { usePageTitle } from '../hooks/usePageTitle'
+
+export const AboutPage = () => {
+  usePageTitle('About')
+  return (
   <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
     <h1 className="mb-4 text-3xl font-bold">About StreamVault</h1>
     <p className="mb-4 text-muted-foreground">
@@ -15,4 +19,5 @@ export const AboutPage = () => (
       designed to make video learning simple, secure, and delightful.
     </p>
   </div>
-)
+  )
+}

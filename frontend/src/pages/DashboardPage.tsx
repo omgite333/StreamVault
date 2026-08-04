@@ -7,9 +7,11 @@ import { ContinueWatchingItem } from '../components/course/ContinueWatchingItem'
 import { useAuthStore } from '../store/auth.store'
 import { useCourses } from '../hooks/useCourses'
 import { useProgress } from '../hooks/useProgress'
+import { usePageTitle } from '../hooks/usePageTitle'
 import { formatTotalTime } from '../lib/utils'
 
 export const DashboardPage = () => {
+  usePageTitle('Dashboard')
   const user = useAuthStore((s) => s.user)
   const { courses, isLoading } = useCourses()
   const { progress, isLoading: loadingProgress } = useProgress()

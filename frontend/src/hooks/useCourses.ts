@@ -1,8 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { courseService, type CoursePayload } from '../services/course.service'
+import { useToast } from '../components/ui/toast-context'
+import { getErrorMessage } from '../lib/utils'
 
 export const useCourses = () => {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
 
   const listQuery = useQuery({
     queryKey: ['courses'],
@@ -14,7 +17,13 @@ export const useCourses = () => {
 
   const createMutation = useMutation({
     mutationFn: (payload: CoursePayload) => courseService.create(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['courses'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] })
+      toast({ title: 'Course created', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Could not create course', description: getErrorMessage(error), variant: 'error' })
+    },
   })
 
   const updateMutation = useMutation({
@@ -28,7 +37,13 @@ export const useCourses = () => {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => courseService.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['courses'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] })
+      toast({ title: 'Course deleted', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Could not delete course', description: getErrorMessage(error), variant: 'error' })
+    },
   })
 
   return {

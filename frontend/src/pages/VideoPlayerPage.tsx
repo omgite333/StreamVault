@@ -7,12 +7,14 @@ import { VideoPlayer } from '../components/video/VideoPlayer'
 import { VideoCard } from '../components/course/VideoCard'
 import { Button } from '../components/ui/button'
 import { Skeleton } from '../components/ui/skeleton'
+import { usePageTitle } from '../hooks/usePageTitle'
 
 export const VideoPlayerPage = () => {
   const { courseId, videoId } = useParams<{ courseId: string; videoId: string }>()
   const { data: video, isLoading } = useVideo(videoId ?? '')
   const { data: course } = useCourse(courseId)
   const { progress } = useProgress()
+  usePageTitle(video?.title)
 
   if (isLoading) {
     return (
