@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  password      String?
+  role          Role           @default(STUDENT)
+  profileImage  String?
+  isVerified    Boolean        @default(false)
+  oauthAccounts OAuthAccount[]
+  courses       Course[]       @relation("CourseCreator")
+  progress      Progress[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model OAuthAccount {
+  id                String   @id @default(cuid())
+  provider          String
+  providerAccountId String
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Course {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  description String
+  thumbnail   String?
+  createdBy   String
+  creator     User      @relation("CourseCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  sections    Section[]
+  videos      Video[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([createdBy])
+}
+
+model Section {
+  id       String  @id @default(cuid())
+  courseId String
+  course   Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title    String
+  order    Int
+  videos   Video[]
+
+  @@index([courseId])
+}
+
+model Video {
+  id            String     @id @default(cuid())
+  courseId      String
+  course        Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  sectionId     String?
+  section       Section?   @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  title         String
+  description   String?
+  duration      Int?
+  thumbnail     String?
+  s3Key         String     @unique
+  videoUrl      String?
+  order         Int        @default(0)
+  allowDownload Boolean    @default(false)
+  resources     Resource[]
+  progress      Progress[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([courseId])
+  @@index([sectionId])
+}
+
+model Resource {
+  id      String @id @default(cuid())
+  videoId String
+  video   Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  title   String
+  fileUrl String
+  type    String @default("pdf")
+
+  @@index([videoId])
+}
+
+model Progress {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoId       String
+  video         Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  lastTimestamp Int      @default(0)
+  completed     Boolean  @default(false)
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, videoId])
+  @@index([userId])
+}
