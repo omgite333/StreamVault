@@ -38,7 +38,7 @@ export const HomePage = () => {
           Learn anything, anywhere
         </span>
         <h1 className="max-w-3xl text-4xl font-extrabold tracking-tight sm:text-6xl">
-          Master skills with <span className="text-primary">expert-led video courses</span>
+          Master new skills with <span className="text-primary">expert-led video courses</span>
         </h1>
         <p className="max-w-2xl text-lg text-muted-foreground">
           StreamVault brings premium video education to your screen with seamless streaming, progress
