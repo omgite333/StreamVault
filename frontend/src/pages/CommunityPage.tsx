@@ -106,6 +106,9 @@ export const CommunityPage = () => {
   const [content, setContent] = useState('')
   const [replyTo, setReplyTo] = useState<CommunityMessage | null>(null)
   const [showScrollButton, setShowScrollButton] = useState(false)
+  const [viewportHeight, setViewportHeight] = useState(
+    () => window.visualViewport?.height ?? window.innerHeight,
+  )
   const listRef = useRef<HTMLDivElement>(null)
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const stickToBottom = useRef(true)
@@ -123,6 +126,18 @@ export const CommunityPage = () => {
   useEffect(() => {
     if (stickToBottom.current) scrollToBottom()
   }, [sorted.length, scrollToBottom])
+
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const onResize = () => {
+      setViewportHeight(vv.height)
+      if (stickToBottom.current) scrollToBottom()
+    }
+    vv.addEventListener('resize', onResize)
+    onResize()
+    return () => vv.removeEventListener('resize', onResize)
+  }, [scrollToBottom])
 
   const handleScroll = () => {
     const list = listRef.current
@@ -169,9 +184,12 @@ export const CommunityPage = () => {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-4rem)] max-w-3xl flex-col px-4 pt-6 pb-4 sm:px-6">
+    <div
+      className="mx-auto flex max-w-3xl flex-col px-4 pt-6 pb-4 sm:px-6"
+      style={{ height: `calc(${viewportHeight}px - 4rem)` }}
+    >
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border bg-card shadow-lg">
-        <header className="flex items-center gap-3 border-b bg-gradient-to-r from-primary/10 via-card to-card px-4 py-3">
+        <header className="flex items-center gap-3 border-b bg-gradient-to-r from-primary/10 via-card to-card px-3 py-2.5 sm:px-4 sm:py-3">
           <div className="relative shrink-0">
             <div className="flex size-11 items-center justify-center rounded-full bg-primary/10">
               <MessageCircle className="size-5 text-primary" />
@@ -255,7 +273,7 @@ export const CommunityPage = () => {
           )}
         </div>
 
-        <footer className="border-t bg-card p-3">
+        <footer className="border-t bg-card p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           {replyTo && (
             <div className="mb-2 flex items-center gap-2 rounded-lg border-l-2 border-primary bg-secondary/60 px-3 py-1.5">
               <CornerUpLeft className="size-3.5 shrink-0 text-primary" />
@@ -266,7 +284,7 @@ export const CommunityPage = () => {
               <button
                 onClick={() => setReplyTo(null)}
                 aria-label="Cancel reply"
-                className="text-muted-foreground transition-colors hover:text-foreground"
+                className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
               >
                 <X className="size-4" />
               </button>
@@ -288,7 +306,8 @@ export const CommunityPage = () => {
               maxLength={2000}
               rows={1}
               disabled={!enabled}
-              className="max-h-32 min-h-[44px] resize-none rounded-2xl disabled:opacity-60"
+              style={{ minHeight: '44px' }}
+              className="max-h-32 resize-none rounded-2xl disabled:opacity-60"
             />
             <Button
               type="submit"

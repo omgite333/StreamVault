@@ -58,17 +58,17 @@ export const ManageUsersPage = () => {
           {(users ?? []).map((user) => (
             <Card key={user.id}>
               <CardContent className="flex flex-wrap items-center justify-between gap-4 py-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
-                    {user.name.charAt(0).toUpperCase()}
+                  <div className="flex min-w-0 items-center gap-4">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{user.name}</p>
+                      <p className="break-words text-sm text-muted-foreground">
+                        {user.email} · Joined {formatDate(user.createdAt)}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">{user.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {user.email} · Joined {formatDate(user.createdAt)}
-                    </p>
-                  </div>
-                </div>
                 <div className="flex items-center gap-3">
                   <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
                     {user.role === 'ADMIN' ? 'Admin' : 'Student'}

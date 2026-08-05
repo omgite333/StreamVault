@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { KeyboardEvent, MouseEvent, PointerEvent } from 'react'
+import type { KeyboardEvent, MouseEvent, PointerEvent, TouchEvent } from 'react'
 import {
   Check,
   ChevronDown,
@@ -109,6 +109,15 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
   const [isPiP, setIsPiP] = useState(false)
   const [pipSupported, setPipSupported] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
+  const [skipFeedback, setSkipFeedback] = useState<{ dir: 'forward' | 'back'; key: number } | null>(null)
+  const [speedMenuMaxHeight, setSpeedMenuMaxHeight] = useState<number | undefined>(undefined)
+
+  const speedBtnRef = useRef<HTMLButtonElement>(null)
+  const lastTapRef = useRef<{ time: number; x: number } | null>(null)
+  const singleTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const skipFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const controlsVisibleRef = useRef(controlsVisible)
+  controlsVisibleRef.current = controlsVisible
 
   const updateProgressRef = useRef(updateProgress)
   updateProgressRef.current = updateProgress
@@ -162,7 +171,14 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
     setBuffered(0)
     setSeekPreview(null)
     setSpeedMenuOpen(false)
+    setSkipFeedback(null)
+    setSpeedMenuMaxHeight(undefined)
     lastSavedRef.current = 0
+    lastTapRef.current = null
+    if (singleTapTimerRef.current) clearTimeout(singleTapTimerRef.current)
+    if (skipFeedbackTimerRef.current) clearTimeout(skipFeedbackTimerRef.current)
+    singleTapTimerRef.current = null
+    skipFeedbackTimerRef.current = null
     const video = videoRef.current
     if (video) video.currentTime = 0
     if (document.pictureInPictureElement) void document.exitPictureInPicture()
@@ -252,6 +268,18 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
     setControlsVisible(true)
   }
 
+  const toggleSpeedMenu = () => {
+    if (!speedMenuOpen) {
+      const btn = speedBtnRef.current
+      const container = containerRef.current
+      if (btn && container) {
+        const spaceAbove = btn.getBoundingClientRect().top - container.getBoundingClientRect().top
+        setSpeedMenuMaxHeight(Math.max(120, Math.floor(spaceAbove - 8)))
+      }
+    }
+    setSpeedMenuOpen((open) => !open)
+  }
+
   const replay = () => {
     const video = videoRef.current
     if (!video) return
@@ -339,12 +367,61 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
     onEndedRef.current?.()
   }
 
+  const isControlTarget = (target: EventTarget | null) =>
+    target instanceof Element &&
+    Boolean(target.closest('button, input, [role="switch"], [data-player-menu], [data-player-seekbar]'))
+
   const handleContainerClick = (e: MouseEvent<HTMLDivElement>) => {
     setSpeedMenuOpen(false)
-    const target = e.target as HTMLElement
-    if (target.closest('button, input, [role="switch"], [data-player-menu]')) return
+    if (isControlTarget(e.target)) return
     togglePlay()
     containerRef.current?.focus()
+  }
+
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    if (isControlTarget(e.target)) return
+    e.preventDefault()
+    lastMoveRef.current = Date.now()
+  }
+
+  const handleTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
+    if (isControlTarget(e.target)) return
+    const rect = containerRef.current?.getBoundingClientRect()
+    const touch = e.changedTouches[0]
+    if (!touch || !rect) return
+    const x = touch.clientX - rect.left
+    const now = Date.now()
+    const prev = lastTapRef.current
+
+    if (prev && now - prev.time <= 300 && Math.abs(x - prev.x) <= 60) {
+      if (singleTapTimerRef.current) {
+        clearTimeout(singleTapTimerRef.current)
+        singleTapTimerRef.current = null
+      }
+      lastTapRef.current = null
+      const forward = x >= rect.width / 2
+      skip(forward ? SKIP_SECONDS : -SKIP_SECONDS)
+      setSkipFeedback({ dir: forward ? 'forward' : 'back', key: now })
+      if (skipFeedbackTimerRef.current) clearTimeout(skipFeedbackTimerRef.current)
+      skipFeedbackTimerRef.current = setTimeout(() => setSkipFeedback(null), 800)
+      lastMoveRef.current = now
+      setControlsVisible(true)
+      return
+    }
+
+    lastTapRef.current = { time: now, x }
+    if (singleTapTimerRef.current) clearTimeout(singleTapTimerRef.current)
+    singleTapTimerRef.current = setTimeout(() => {
+      singleTapTimerRef.current = null
+      lastTapRef.current = null
+      if (controlsVisibleRef.current) {
+        setControlsVisible(false)
+      } else {
+        lastMoveRef.current = Date.now()
+        setControlsVisible(true)
+      }
+      containerRef.current?.focus()
+    }, 260)
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -421,6 +498,8 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
         e.preventDefault()
         toggleFullscreen()
       }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       onKeyDown={handleKeyDown}
       onFocus={() => setControlsVisible(true)}
     >
@@ -464,6 +543,21 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
       {buffering && isPlaying && !isEnded && (
         <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
           <Loader2 className="size-12 animate-spin text-white drop-shadow" />
+        </div>
+      )}
+
+      {skipFeedback && (
+        <div
+          key={skipFeedback.key}
+          className="pointer-events-none absolute inset-0 z-20 grid place-items-center"
+        >
+          <div className="flex size-20 max-sm:size-16 animate-[skip-pop_0.8s_ease-out] items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm">
+            {skipFeedback.dir === 'forward' ? (
+              <FastForward className="size-9 max-sm:size-7 fill-current" />
+            ) : (
+              <Rewind className="size-9 max-sm:size-7 fill-current" />
+            )}
+          </div>
         </div>
       )}
 
@@ -524,6 +618,7 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
       >
         <div
           ref={seekBarRef}
+          data-player-seekbar
           className="group/seek relative flex h-5 cursor-pointer items-center"
           onPointerDown={onSeekPointerDown}
           onPointerMove={onSeekPointerMove}
@@ -581,16 +676,18 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
           </div>
 
           <span className="ml-2 shrink-0 text-xs tabular-nums text-white/80">
-            {formatDuration(currentTime)} <span className="text-white/40">/</span> {formatDuration(duration)}
+            {formatDuration(currentTime)}
+            <span className="hidden sm:inline"> / {formatDuration(duration)}</span>
           </span>
 
           <div className="ml-auto flex items-center gap-1">
             <div className="relative" data-player-menu>
               <button
+                ref={speedBtnRef}
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation()
-                  setSpeedMenuOpen((open) => !open)
+                  toggleSpeedMenu()
                 }}
                 className="flex h-8 max-sm:h-7 items-center gap-1 rounded-md px-2 max-sm:px-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/20"
                 aria-label="Playback speed"
@@ -599,8 +696,11 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
                 <ChevronDown className={cn('size-3.5 max-sm:size-3 transition-transform', speedMenuOpen && 'rotate-180')} />
               </button>
               {speedMenuOpen && (
-                <div className="absolute bottom-10 right-0 z-30 w-44 overflow-hidden rounded-lg border border-white/10 bg-zinc-900/95 shadow-xl backdrop-blur">
-                  <div className="px-3 pb-1 pt-2.5 text-[10px] font-semibold uppercase tracking-wider text-white/50">
+                <div
+                  className="absolute bottom-10 right-0 z-30 w-44 max-sm:w-40 overflow-y-auto rounded-lg border border-white/10 bg-zinc-900/95 shadow-xl backdrop-blur"
+                  style={{ maxHeight: speedMenuMaxHeight }}
+                >
+                  <div className="sticky top-0 z-10 bg-zinc-900/95 px-3 pb-1 pt-2.5 text-[10px] font-semibold uppercase tracking-wider text-white/50 backdrop-blur">
                     Playback speed
                   </div>
                   {SPEEDS.map((option) => (
@@ -631,7 +731,13 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
             </div>
 
             {pipSupported && (
-              <button type="button" onClick={() => void togglePiP()} className={iconBtn} aria-label="Picture in picture" aria-pressed={isPiP}>
+              <button
+                type="button"
+                onClick={() => void togglePiP()}
+                className={cn(iconBtn, 'max-sm:hidden')}
+                aria-label="Picture in picture"
+                aria-pressed={isPiP}
+              >
                 <PictureInPicture2 className={iconSize} />
               </button>
             )}

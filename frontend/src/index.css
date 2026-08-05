@@ -86,6 +86,25 @@
   }
 }
 
+@keyframes skip-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  15% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
