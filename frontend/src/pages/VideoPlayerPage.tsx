@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Download } from 'lucide-react'
 import { useVideo } from '../hooks/useVideo'
 import { useCourse } from '../hooks/useCourse'
@@ -11,6 +11,7 @@ import { usePageTitle } from '../hooks/usePageTitle'
 
 export const VideoPlayerPage = () => {
   const { courseId, videoId } = useParams<{ courseId: string; videoId: string }>()
+  const navigate = useNavigate()
   const { data: video, isLoading } = useVideo(videoId ?? '')
   const { data: course } = useCourse(courseId)
   const { progress } = useProgress()
@@ -29,7 +30,13 @@ export const VideoPlayerPage = () => {
   }
 
   const saved = progress?.find((p) => p.videoId === video.id)
-  const allVideos = [...(course?.videos ?? []), ...(course?.sections.flatMap((s) => s.videos ?? []) ?? [])]
+  const allVideos = Array.from(
+    new Map(
+      [...course?.videos ?? [], ...(course?.sections.flatMap((s) => s.videos ?? []) ?? [])].map((v) => [v.id, v]),
+    ).values(),
+  )
+  const currentIndex = allVideos.findIndex((v) => v.id === video.id)
+  const nextVideo = currentIndex >= 0 ? allVideos[currentIndex + 1] : undefined
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -39,8 +46,9 @@ export const VideoPlayerPage = () => {
             src={video.streamUrl}
             videoId={video.id}
             initialTime={saved?.lastTimestamp}
-            allowDownload={video.allowDownload}
             poster={video.thumbnailUrl}
+            nextVideo={nextVideo ? { id: nextVideo.id, title: nextVideo.title } : null}
+            onNext={() => navigate(`/courses/${courseId}/videos/${nextVideo?.id ?? ''}`)}
           />
           <div className="mt-4">
             <h1 className="text-xl font-bold">{video.title}</h1>
