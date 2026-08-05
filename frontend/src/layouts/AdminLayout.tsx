@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { AdminSidebar } from '../components/layout/AdminSidebar'
 import { Button } from '../components/ui/button'
+import { PageLoader } from '../components/ui/page-loader'
 import { ScrollToTop } from '../components/ScrollToTop'
 import { usePageTitle } from '../hooks/usePageTitle'
 
@@ -37,7 +38,9 @@ export const AdminLayout = () => {
             <Menu />
             Menu
           </Button>
-          <Outlet />
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
     </div>

@@ -46,6 +46,11 @@ export const VideoGridCard = ({ video, courseId, canEdit = false, onThumbnail, o
             <img
               src={video.thumbnailUrl}
               alt={video.title}
+              width={1280}
+              height={720}
+              loading="lazy"
+              decoding="async"
+              sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
               className="size-full object-contain transition-transform duration-300 group-hover:scale-105"
             />
           ) : (

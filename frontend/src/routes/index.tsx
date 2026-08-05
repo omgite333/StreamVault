@@ -1,28 +1,45 @@
+/* oxlint-disable react/only-export-components */
+import { lazy } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 import { MainLayout } from '../layouts/MainLayout'
 import { AuthLayout } from '../layouts/AuthLayout'
 import { AdminLayout } from '../layouts/AdminLayout'
 import { ProtectedRoute } from '../components/protected/ProtectedRoute'
 import { AdminRoute } from '../components/protected/AdminRoute'
-import { HomePage } from '../pages/HomePage'
-import { AboutPage } from '../pages/AboutPage'
-import { ContactPage } from '../pages/ContactPage'
-import { LoginPage } from '../pages/LoginPage'
-import { RegisterPage } from '../pages/RegisterPage'
-import { NotFoundPage } from '../pages/NotFoundPage'
-import { DashboardPage } from '../pages/DashboardPage'
-import { ProfilePage } from '../pages/ProfilePage'
-import { CourseListPage } from '../pages/CourseListPage'
-import { CourseDetailsPage } from '../pages/CourseDetailsPage'
-import { VideoPlayerPage } from '../pages/VideoPlayerPage'
-import { ContinueWatchingPage } from '../pages/ContinueWatchingPage'
-import { OAuthCallbackPage } from '../pages/OAuthCallbackPage'
-import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage'
-import { ManageCoursesPage } from '../pages/admin/ManageCoursesPage'
-import { CreateCoursePage } from '../pages/admin/CreateCoursePage'
-import { UploadVideoPage } from '../pages/admin/UploadVideoPage'
-import { ManageUsersPage } from '../pages/admin/ManageUsersPage'
-import { AnalyticsPage } from '../pages/admin/AnalyticsPage'
+
+const HomePage = lazy(() => import('../pages/HomePage').then((m) => ({ default: m.HomePage })))
+const AboutPage = lazy(() => import('../pages/AboutPage').then((m) => ({ default: m.AboutPage })))
+const ContactPage = lazy(() => import('../pages/ContactPage').then((m) => ({ default: m.ContactPage })))
+const NotFoundPage = lazy(() => import('../pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
+const LoginPage = lazy(() => import('../pages/LoginPage').then((m) => ({ default: m.LoginPage })))
+const RegisterPage = lazy(() => import('../pages/RegisterPage').then((m) => ({ default: m.RegisterPage })))
+const DashboardPage = lazy(() => import('../pages/DashboardPage').then((m) => ({ default: m.DashboardPage })))
+const ProfilePage = lazy(() => import('../pages/ProfilePage').then((m) => ({ default: m.ProfilePage })))
+const CourseListPage = lazy(() => import('../pages/CourseListPage').then((m) => ({ default: m.CourseListPage })))
+const CourseDetailsPage = lazy(() => import('../pages/CourseDetailsPage').then((m) => ({ default: m.CourseDetailsPage })))
+const VideoPlayerPage = lazy(() => import('../pages/VideoPlayerPage').then((m) => ({ default: m.VideoPlayerPage })))
+const ContinueWatchingPage = lazy(() =>
+  import('../pages/ContinueWatchingPage').then((m) => ({ default: m.ContinueWatchingPage })),
+)
+const OAuthCallbackPage = lazy(() =>
+  import('../pages/OAuthCallbackPage').then((m) => ({ default: m.OAuthCallbackPage })),
+)
+const AdminDashboardPage = lazy(() =>
+  import('../pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })),
+)
+const ManageCoursesPage = lazy(() =>
+  import('../pages/admin/ManageCoursesPage').then((m) => ({ default: m.ManageCoursesPage })),
+)
+const CreateCoursePage = lazy(() =>
+  import('../pages/admin/CreateCoursePage').then((m) => ({ default: m.CreateCoursePage })),
+)
+const UploadVideoPage = lazy(() =>
+  import('../pages/admin/UploadVideoPage').then((m) => ({ default: m.UploadVideoPage })),
+)
+const ManageUsersPage = lazy(() =>
+  import('../pages/admin/ManageUsersPage').then((m) => ({ default: m.ManageUsersPage })),
+)
+const AnalyticsPage = lazy(() => import('../pages/admin/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })))
 
 export const router = createBrowserRouter([
   {

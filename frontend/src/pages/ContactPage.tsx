@@ -16,8 +16,8 @@ export const ContactPage = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          <a href="mailto:support@streamvault.app" className="text-primary hover:underline">
-            support@streamvault.app
+          <a href="mailto:giteom50@gmail.com" className="text-primary hover:underline">
+            giteom50@gmail.com
           </a>
         </CardContent>
       </Card>

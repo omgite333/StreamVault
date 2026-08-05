@@ -1,7 +1,9 @@
+import { Suspense } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { PlayCircle } from 'lucide-react'
 import { useAuthStore } from '../store/auth.store'
 import { ScrollToTop } from '../components/ScrollToTop'
+import { PageLoader } from '../components/ui/page-loader'
 
 export const AuthLayout = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -18,7 +20,9 @@ export const AuthLayout = () => {
         <span className="text-xl font-bold">StreamVault</span>
       </div>
       <div className="w-full max-w-md rounded-xl border bg-card p-8 shadow-sm">
-        <Outlet />
+        <Suspense fallback={<PageLoader />}>
+          <Outlet />
+        </Suspense>
       </div>
     </div>
   )

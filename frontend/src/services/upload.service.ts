@@ -13,6 +13,11 @@ export interface UploadProgress {
   total: number
 }
 
+export interface PutObjectHandle {
+  promise: Promise<{ ok: boolean; status: number }>
+  abort: () => void
+}
+
 export const uploadService = {
   getUploadUrl: (payload: UploadUrlInput) =>
     api.post<ApiResponse<UploadUrlResponse>>('/uploads/url', payload),
@@ -27,22 +32,25 @@ export const uploadService = {
     file: File,
     fileType: string,
     onProgress?: (progress: UploadProgress) => void,
-  ) =>
-    new Promise<{ ok: boolean; status: number }>((resolve, reject) => {
-      const xhr = new XMLHttpRequest()
-      xhr.open('PUT', url)
-      xhr.setRequestHeader('Content-Type', fileType)
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          onProgress?.({
-            percent: e.total > 0 ? Math.min(100, Math.round((e.loaded / e.total) * 100)) : 0,
-            loaded: e.loaded,
-            total: e.total,
-          })
-        }
+  ): PutObjectHandle => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('PUT', url)
+    xhr.setRequestHeader('Content-Type', fileType)
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        onProgress?.({
+          percent: e.total > 0 ? Math.min(100, Math.round((e.loaded / e.total) * 100)) : 0,
+          loaded: e.loaded,
+          total: e.total,
+        })
       }
+    }
+    const promise = new Promise<{ ok: boolean; status: number }>((resolve, reject) => {
       xhr.onload = () => resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status })
       xhr.onerror = () => reject(new Error('Network error during upload.'))
-      xhr.send(file)
-    }),
+      xhr.onabort = () => reject(new Error('Upload cancelled.'))
+    })
+    xhr.send(file)
+    return { promise, abort: () => xhr.abort() }
+  },
 }

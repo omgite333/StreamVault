@@ -19,7 +19,15 @@ export const VideoCard = ({ video, courseId, isActive = false }: VideoCardProps)
   >
     <div className="relative size-9 shrink-0 overflow-hidden rounded-md bg-secondary">
       {video.thumbnailUrl ? (
-        <img src={video.thumbnailUrl} alt={video.title} className="size-full object-contain" />
+        <img
+          src={video.thumbnailUrl}
+          alt={video.title}
+          width={72}
+          height={72}
+          loading="lazy"
+          decoding="async"
+          className="size-full object-contain"
+        />
       ) : (
         <PlayCircle className="absolute inset-0 m-auto size-4 text-muted-foreground" />
       )}

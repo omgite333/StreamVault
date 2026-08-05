@@ -42,7 +42,9 @@ interface VideoPlayerProps {
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
 const iconBtn =
-  'flex size-9 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50'
+  'flex size-9 max-sm:size-8 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50'
+
+const iconSize = 'size-5 max-sm:size-4'
 
 const formatSpeed = (value: number) => `${value}x`
 
@@ -405,7 +407,7 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
     <div
       ref={containerRef}
       tabIndex={0}
-      className="group relative aspect-video w-full overflow-hidden rounded-lg bg-black outline-none"
+      className="group relative aspect-video w-full overflow-hidden rounded-lg bg-black outline-none touch-manipulation"
       onMouseMove={() => {
         lastMoveRef.current = Date.now()
         setControlsVisible(true)
@@ -473,10 +475,10 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
               e.stopPropagation()
               togglePlay()
             }}
-            className="pointer-events-auto flex size-20 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-transform hover:scale-105 hover:bg-white/30"
+            className="pointer-events-auto flex size-20 max-sm:size-16 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-transform hover:scale-105 hover:bg-white/30"
             aria-label="Play"
           >
-            <Play className="size-9 fill-current" />
+            <Play className="size-9 max-sm:size-7 fill-current" />
           </button>
         </div>
       )}
@@ -500,7 +502,7 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
                 className="inline-flex max-w-full items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-zinc-900 transition-colors hover:bg-white/90"
               >
                 <Play className="size-4 shrink-0 fill-current" />
-                <span className="max-w-[50vw] truncate">Up next: {nextVideo.title}</span>
+                <span className="max-w-[60vw] truncate sm:max-w-[50vw]">Up next: {nextVideo.title}</span>
                 {countdown !== null && <span className="shrink-0 tabular-nums text-zinc-500">{countdown}s</span>}
               </button>
             )}
@@ -552,20 +554,20 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
           )}
         </div>
 
-        <div className="pointer-events-auto flex items-center gap-1">
+        <div className="pointer-events-auto flex items-center gap-1 max-sm:gap-0.5">
           <button type="button" onClick={togglePlay} className={cn(iconBtn, 'bg-white/15 hover:bg-white/30')} aria-label={isPlaying ? 'Pause' : 'Play'}>
-            {isPlaying ? <Pause className="size-5 fill-current" /> : <Play className="size-5 fill-current" />}
+            {isPlaying ? <Pause className={cn('fill-current', iconSize)} /> : <Play className={cn('fill-current', iconSize)} />}
           </button>
           <button type="button" onClick={() => skip(-SKIP_SECONDS)} className={iconBtn} aria-label="Rewind 10 seconds">
-            <Rewind className="size-5" />
+            <Rewind className={iconSize} />
           </button>
           <button type="button" onClick={() => skip(SKIP_SECONDS)} className={iconBtn} aria-label="Forward 10 seconds">
-            <FastForward className="size-5" />
+            <FastForward className={iconSize} />
           </button>
 
           <div className="group/vol flex items-center" data-player-menu>
             <button type="button" onClick={toggleMute} className={iconBtn} aria-label={muted ? 'Unmute' : 'Mute'}>
-              {muted || volume === 0 ? <VolumeX className="size-5" /> : volume < 0.5 ? <Volume1 className="size-5" /> : <Volume2 className="size-5" />}
+              {muted || volume === 0 ? <VolumeX className={iconSize} /> : volume < 0.5 ? <Volume1 className={iconSize} /> : <Volume2 className={iconSize} />}
             </button>
             <input
               type="range"
@@ -574,7 +576,7 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
               value={muted ? 0 : Math.round(volume * 100)}
               onChange={(e) => changeVolume(Number(e.target.value) / 100)}
               aria-label="Volume"
-              className="h-1 w-0 cursor-pointer accent-primary opacity-0 transition-all duration-200 group-hover/vol:w-20 group-hover/vol:opacity-100 focus:w-20 focus:opacity-100"
+              className="hidden h-1 w-0 cursor-pointer accent-primary opacity-0 transition-all duration-200 group-hover/vol:w-20 group-hover/vol:opacity-100 focus:w-20 focus:opacity-100 md:block"
             />
           </div>
 
@@ -590,11 +592,11 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
                   e.stopPropagation()
                   setSpeedMenuOpen((open) => !open)
                 }}
-                className="flex h-8 items-center gap-1 rounded-md px-2 text-xs font-semibold text-white transition-colors hover:bg-white/20"
+                className="flex h-8 max-sm:h-7 items-center gap-1 rounded-md px-2 max-sm:px-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/20"
                 aria-label="Playback speed"
               >
                 {formatSpeed(speed)}
-                <ChevronDown className={cn('size-3.5 transition-transform', speedMenuOpen && 'rotate-180')} />
+                <ChevronDown className={cn('size-3.5 max-sm:size-3 transition-transform', speedMenuOpen && 'rotate-180')} />
               </button>
               {speedMenuOpen && (
                 <div className="absolute bottom-10 right-0 z-30 w-44 overflow-hidden rounded-lg border border-white/10 bg-zinc-900/95 shadow-xl backdrop-blur">
@@ -630,12 +632,12 @@ export const VideoPlayer = ({ src, videoId, initialTime = 0, poster, nextVideo, 
 
             {pipSupported && (
               <button type="button" onClick={() => void togglePiP()} className={iconBtn} aria-label="Picture in picture" aria-pressed={isPiP}>
-                <PictureInPicture2 className="size-5" />
+                <PictureInPicture2 className={iconSize} />
               </button>
             )}
 
             <button type="button" onClick={toggleFullscreen} className={iconBtn} aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>
-              {isFullscreen ? <Minimize className="size-5" /> : <Maximize className="size-5" />}
+              {isFullscreen ? <Minimize className={iconSize} /> : <Maximize className={iconSize} />}
             </button>
           </div>
         </div>

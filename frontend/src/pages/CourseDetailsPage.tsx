@@ -11,6 +11,7 @@ import { Skeleton } from '../components/ui/skeleton'
 import { useToast } from '../components/ui/toast-context'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { getErrorMessage } from '../lib/utils'
+import { toWebP } from '../lib/image'
 import type { Video } from '../types'
 
 export const CourseDetailsPage = () => {
@@ -25,10 +26,11 @@ export const CourseDetailsPage = () => {
 
   const handleThumbnail = async (video: Video, file: File) => {
     try {
-      const fileType = file.type || 'image/png'
+      const thumbFile = await toWebP(file)
+      const fileType = thumbFile.type || 'image/webp'
       const { data } = await uploadService.getUploadUrl({ fileType, folder: 'thumbnails' })
       const { url, key } = data.data
-      const response = await uploadService.putObject(url, file, fileType)
+      const response = await uploadService.putObject(url, thumbFile, fileType)
       if (!response.ok) {
         throw new Error('Thumbnail upload failed.')
       }

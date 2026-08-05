@@ -23,20 +23,20 @@ const ToastCard = ({ toast, onClose }: { toast: ToastData; onClose: () => void }
   return (
     <div
       role="status"
-      className="pointer-events-auto flex w-full items-start gap-3 rounded-lg border bg-card p-4 shadow-lg"
+      className="pointer-events-auto flex w-full items-start gap-3.5 rounded-xl border bg-card p-5 shadow-xl"
     >
-      <Icon className={cn('mt-0.5 size-5 shrink-0', container)} />
+      <Icon className={cn('mt-0.5 size-6 shrink-0', container)} />
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold">{toast.title}</p>
-        {toast.description && <p className="mt-0.5 text-sm text-muted-foreground">{toast.description}</p>}
+        <p className="text-base font-semibold">{toast.title}</p>
+        {toast.description && <p className="mt-1 text-sm text-muted-foreground">{toast.description}</p>}
       </div>
       <button
         type="button"
         onClick={onClose}
         aria-label="Dismiss notification"
-        className="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground"
+        className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
       >
-        <X className="size-4" />
+        <X className="size-5" />
       </button>
     </div>
   )
@@ -53,7 +53,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
     (options: ToastOptions) => {
       const id = ++nextId
       setToasts((prev) => [...prev.slice(-3), { id, variant: 'info', ...options }])
-      window.setTimeout(() => dismiss(id), 4500)
+      window.setTimeout(() => dismiss(id), 5000)
     },
     [dismiss],
   )
@@ -65,7 +65,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
       <div
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-4 top-4 z-[100] flex flex-col items-center gap-2 sm:inset-x-auto sm:right-4 sm:w-96 sm:items-end"
+        className="pointer-events-none fixed inset-x-4 top-4 z-[100] flex flex-col items-center gap-2.5 sm:inset-x-auto sm:right-4 sm:w-[28rem] sm:items-end"
       >
         {toasts.map((t) => (
           <ToastCard key={t.id} toast={t} onClose={() => dismiss(t.id)} />

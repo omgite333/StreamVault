@@ -12,6 +12,7 @@ import { Textarea } from '../../components/ui/textarea'
 import { Spinner } from '../../components/ui/spinner'
 import { useToast } from '../../components/ui/toast-context'
 import { getErrorMessage } from '../../lib/utils'
+import { toWebP } from '../../lib/image'
 import { usePageTitle } from '../../hooks/usePageTitle'
 
 type UploadStatus = 'idle' | 'uploading' | 'finalizing' | 'done' | 'error'
@@ -54,8 +55,19 @@ export const UploadVideoPage = () => {
   const uploadStartRef = useRef(0)
   const lastLoadedRef = useRef(0)
   const lastTimeRef = useRef(0)
+  const cancelAbortRef = useRef<(() => void) | null>(null)
+  const cancelledRef = useRef(false)
 
   const isBusy = status === 'uploading' || status === 'finalizing'
+
+  const handleCancel = () => {
+    cancelledRef.current = true
+    cancelAbortRef.current?.()
+    cancelAbortRef.current = null
+    setStatus('idle')
+    setProgress({ percent: 0, loaded: 0, total: 0 })
+    setSpeed(0)
+  }
 
   const selectThumbnail = (selected: File | null) => {
     if (thumbPreview) URL.revokeObjectURL(thumbPreview)
@@ -74,6 +86,7 @@ export const UploadVideoPage = () => {
       setStatus('uploading')
       setProgress({ percent: 0, loaded: 0, total: 0 })
       setSpeed(0)
+      cancelledRef.current = false
       const fileType = file.type || 'video/mp4'
       const { data } = await uploadService.getUploadUrl({ fileType, folder: 'videos' })
       const { url, key } = data.data
@@ -82,7 +95,7 @@ export const UploadVideoPage = () => {
       lastLoadedRef.current = 0
       lastTimeRef.current = uploadStartRef.current
 
-      const response = await uploadService.putObjectWithProgress(url, file, fileType, (p) => {
+      const handle = uploadService.putObjectWithProgress(url, file, fileType, (p) => {
         setProgress(p)
         const now = Date.now()
         if (now - lastTimeRef.current >= 500) {
@@ -93,15 +106,19 @@ export const UploadVideoPage = () => {
           lastTimeRef.current = now
         }
       })
+      cancelAbortRef.current = handle.abort
+      const response = await handle.promise
+      cancelAbortRef.current = null
       if (!response.ok) {
         throw new Error('Upload to storage failed.')
       }
 
       let thumbnail: string | undefined
       if (thumbnailFile) {
-        const thumbType = thumbnailFile.type || 'image/png'
+        const thumbFile = await toWebP(thumbnailFile)
+        const thumbType = thumbFile.type || 'image/webp'
         const { data: thumbData } = await uploadService.getUploadUrl({ fileType: thumbType, folder: 'thumbnails' })
-        const thumbResponse = await uploadService.putObject(thumbData.data.url, thumbnailFile, thumbType)
+        const thumbResponse = await uploadService.putObject(thumbData.data.url, thumbFile, thumbType)
         if (!thumbResponse.ok) {
           throw new Error('Thumbnail upload failed.')
         }
@@ -127,6 +144,13 @@ export const UploadVideoPage = () => {
         variant: 'success',
       })
     } catch (e) {
+      cancelAbortRef.current = null
+      if (cancelledRef.current) {
+        setStatus('idle')
+        setProgress({ percent: 0, loaded: 0, total: 0 })
+        setSpeed(0)
+        return
+      }
       setStatus('error')
       const message = getErrorMessage(e, 'Upload failed. Please try again.')
       setError(message)
@@ -291,19 +315,27 @@ export const UploadVideoPage = () => {
           </div>
         )}
 
-        <Button type="submit" disabled={isBusy}>
-          {isBusy && <Spinner />}
-          {status === 'uploading'
-            ? `Uploading to storage... ${progress.percent}%`
-            : status === 'finalizing'
-              ? 'Saving metadata...'
-              : (
-                <>
-                  <CloudUpload />
-                  Upload Video
-                </>
-              )}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button type="submit" disabled={isBusy}>
+            {isBusy && <Spinner />}
+            {status === 'uploading'
+              ? `Uploading to storage... ${progress.percent}%`
+              : status === 'finalizing'
+                ? 'Saving metadata...'
+                : (
+                  <>
+                    <CloudUpload />
+                    Upload Video
+                  </>
+                )}
+          </Button>
+          {isBusy && (
+            <Button type="button" variant="outline" onClick={handleCancel}>
+              <X />
+              Cancel upload
+            </Button>
+          )}
+        </div>
       </form>
     </div>
   )
