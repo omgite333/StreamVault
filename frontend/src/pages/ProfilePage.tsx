@@ -3,6 +3,7 @@ import { Camera, CircleCheck, KeyRound, Loader2, UserRound } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useAuthStore } from '../store/auth.store'
 import { uploadService } from '../services/upload.service'
+import { toSquareAvatar } from '../lib/image'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Input } from '../components/ui/input'
@@ -36,10 +37,11 @@ export const ProfilePage = () => {
     setAvatarUploading(true)
     setProfileMsg('')
     try {
-      const fileType = file.type || 'image/png'
+      const processed = await toSquareAvatar(file)
+      const fileType = processed.type || 'image/webp'
       const { data } = await uploadService.getUploadUrl({ fileType, folder: 'avatars' })
       const { url, key } = data.data
-      const response = await uploadService.putObject(url, file, fileType)
+      const response = await uploadService.putObject(url, processed, fileType)
       if (!response.ok) throw new Error('Avatar upload failed.')
       await updateProfile({ profileImage: key })
     } catch (e) {

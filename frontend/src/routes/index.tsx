@@ -21,6 +21,7 @@ const VideoPlayerPage = lazy(() => import('../pages/VideoPlayerPage').then((m) =
 const ContinueWatchingPage = lazy(() =>
   import('../pages/ContinueWatchingPage').then((m) => ({ default: m.ContinueWatchingPage })),
 )
+const CommunityPage = lazy(() => import('../pages/CommunityPage').then((m) => ({ default: m.CommunityPage })))
 const OAuthCallbackPage = lazy(() =>
   import('../pages/OAuthCallbackPage').then((m) => ({ default: m.OAuthCallbackPage })),
 )
@@ -38,6 +39,9 @@ const UploadVideoPage = lazy(() =>
 )
 const ManageUsersPage = lazy(() =>
   import('../pages/admin/ManageUsersPage').then((m) => ({ default: m.ManageUsersPage })),
+)
+const ManageCommunityPage = lazy(() =>
+  import('../pages/admin/ManageCommunityPage').then((m) => ({ default: m.ManageCommunityPage })),
 )
 const AnalyticsPage = lazy(() => import('../pages/admin/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })))
 
@@ -57,6 +61,7 @@ export const router = createBrowserRouter([
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'profile', element: <ProfilePage /> },
           { path: 'continue-watching', element: <ContinueWatchingPage /> },
+          { path: 'community', element: <CommunityPage /> },
           { path: 'courses/:courseId', element: <CourseDetailsPage /> },
           { path: 'courses/:courseId/videos/:videoId', element: <VideoPlayerPage /> },
         ],
@@ -83,6 +88,7 @@ export const router = createBrowserRouter([
           { path: 'courses/new', element: <CreateCoursePage /> },
           { path: 'upload', element: <UploadVideoPage /> },
           { path: 'users', element: <ManageUsersPage /> },
+          { path: 'community', element: <ManageCommunityPage /> },
           { path: 'analytics', element: <AnalyticsPage /> },
         ],
       },

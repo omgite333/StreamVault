@@ -5,6 +5,8 @@ import videoRoutes from './video.routes';
 import uploadRoutes from './upload.routes';
 import progressRoutes from './progress.routes';
 import adminRoutes from './admin.routes';
+import communityRoutes from './community.routes';
+import commentRoutes from './comment.routes';
 
 const router = Router();
 
@@ -14,5 +16,7 @@ router.use('/videos', videoRoutes);
 router.use('/uploads', uploadRoutes);
 router.use('/progress', progressRoutes);
 router.use('/admin', adminRoutes);
+router.use('/community', communityRoutes);
+router.use('/videos', commentRoutes);
 
 export default router;

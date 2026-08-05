@@ -13,18 +13,20 @@ enum Role {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  name          String
-  email         String         @unique
-  password      String?
-  role          Role           @default(STUDENT)
-  profileImage  String?
-  isVerified    Boolean        @default(false)
-  oauthAccounts OAuthAccount[]
-  courses       Course[]       @relation("CourseCreator")
-  progress      Progress[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                String             @id @default(cuid())
+  name              String
+  email             String             @unique
+  password          String?
+  role              Role               @default(STUDENT)
+  profileImage      String?
+  isVerified        Boolean            @default(false)
+  oauthAccounts     OAuthAccount[]
+  courses           Course[]           @relation("CourseCreator")
+  progress          Progress[]
+  communityMessages CommunityMessage[] @relation("CommunityMessages")
+  videoComments     VideoComment[]     @relation("VideoComments")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 }
 
 model OAuthAccount {
@@ -67,23 +69,24 @@ model Section {
 }
 
 model Video {
-  id            String     @id @default(cuid())
+  id            String         @id @default(cuid())
   courseId      String
-  course        Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course        Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
   sectionId     String?
-  section       Section?   @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  section       Section?       @relation(fields: [sectionId], references: [id], onDelete: SetNull)
   title         String
   description   String?
   duration      Int?
   thumbnail     String?
-  s3Key         String     @unique
+  s3Key         String         @unique
   videoUrl      String?
-  order         Int        @default(0)
-  allowDownload Boolean    @default(false)
+  order         Int            @default(0)
+  allowDownload Boolean        @default(false)
   resources     Resource[]
   progress      Progress[]
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  comments      VideoComment[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   @@index([courseId])
   @@index([sectionId])
@@ -112,4 +115,41 @@ model Progress {
 
   @@unique([userId, videoId])
   @@index([userId])
+}
+
+model CommunityMessage {
+  id        String             @id @default(cuid())
+  content   String
+  authorId  String
+  author    User               @relation("CommunityMessages", fields: [authorId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    CommunityMessage?  @relation("CommunityReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   CommunityMessage[] @relation("CommunityReplies")
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([authorId])
+  @@index([parentId])
+  @@index([createdAt])
+}
+
+model VideoComment {
+  id        String   @id @default(cuid())
+  content   String
+  videoId   String
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation("VideoComments", fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([videoId])
+  @@index([authorId])
+}
+
+model AppSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
 }

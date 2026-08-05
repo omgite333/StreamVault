@@ -87,3 +87,41 @@ export interface ApiResponse<T> {
   message: string
   data: T
 }
+
+export interface MessageAuthor {
+  id: string
+  name: string
+  profileImage: string | null
+  profileImageUrl?: string | null
+  role: Role
+}
+
+export interface CommunityMessage {
+  id: string
+  content: string
+  authorId: string
+  parentId: string | null
+  createdAt: string
+  updatedAt: string
+  author: MessageAuthor
+  parent?: {
+    id: string
+    content: string
+    author: { id: string; name: string }
+  } | null
+}
+
+export interface VideoComment {
+  id: string
+  content: string
+  videoId: string
+  authorId: string
+  createdAt: string
+  updatedAt: string
+  author: MessageAuthor
+  video?: { id: string; title: string }
+}
+
+export interface CommunitySettings {
+  enabled: boolean
+}

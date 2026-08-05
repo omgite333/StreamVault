@@ -5,6 +5,7 @@ import { useCourse } from '../hooks/useCourse'
 import { useProgress } from '../hooks/useProgress'
 import { VideoPlayer } from '../components/video/VideoPlayer'
 import { VideoCard } from '../components/course/VideoCard'
+import { CommentSection } from '../components/comment/CommentSection'
 import { Button } from '../components/ui/button'
 import { Skeleton } from '../components/ui/skeleton'
 import { usePageTitle } from '../hooks/usePageTitle'
@@ -61,6 +62,7 @@ export const VideoPlayerPage = () => {
                 </Button>
               </a>
             )}
+            <CommentSection videoId={video.id} />
           </div>
         </div>
 
