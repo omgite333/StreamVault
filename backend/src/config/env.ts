@@ -16,6 +16,7 @@ const envSchema = z.object({
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
   AWS_BUCKET_NAME: z.string().optional(),
   CLIENT_URL: z.string().default('http://localhost:5173'),
+  SERVER_URL: z.string().default('http://localhost:5000'),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
 });

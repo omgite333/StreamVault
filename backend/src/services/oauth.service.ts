@@ -26,7 +26,7 @@ const getCredentials = (): { clientId: string; clientSecret: string } => {
   return { clientId: GOOGLE_CLIENT_ID, clientSecret: GOOGLE_CLIENT_SECRET };
 };
 
-const callbackUrl = () => `${env.CLIENT_URL}/api/auth/oauth/google/callback`;
+const callbackUrl = () => `${env.SERVER_URL}/api/auth/oauth/google/callback`;
 
 export const getAuthorizeUrl = () => {
   const { clientId } = getCredentials();
