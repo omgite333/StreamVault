@@ -3,7 +3,7 @@ import { useAuthStore } from '../store/auth.store'
 import axios from 'axios'
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   withCredentials: true,
 })
 
@@ -32,8 +32,9 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const original = error.config as RetriableConfig | undefined
     const isRefreshCall = original?.url?.includes('/auth/refresh')
+    const hadToken = Boolean(typeof original?.headers?.Authorization === 'string')
 
-    if (error.response?.status === 401 && original && !original._retry && !isRefreshCall) {
+    if (error.response?.status === 401 && original && hadToken && !original._retry && !isRefreshCall) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push((token) => {

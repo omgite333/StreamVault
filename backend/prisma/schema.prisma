@@ -12,21 +12,109 @@ enum Role {
   STUDENT
 }
 
+enum MeetingStatus {
+  SCHEDULED
+  LIVE
+  ENDED
+}
+
+enum MeetingRole {
+  HOST
+  COHOST
+  STUDENT
+  GUEST
+}
+
 model User {
-  id                String             @id @default(cuid())
-  name              String
-  email             String             @unique
-  password          String?
-  role              Role               @default(STUDENT)
-  profileImage      String?
-  isVerified        Boolean            @default(false)
-  oauthAccounts     OAuthAccount[]
-  courses           Course[]           @relation("CourseCreator")
-  progress          Progress[]
-  communityMessages CommunityMessage[] @relation("CommunityMessages")
-  videoComments     VideoComment[]     @relation("VideoComments")
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  id                  String                 @id @default(cuid())
+  name                String
+  email               String                 @unique
+  password            String?
+  role                Role                   @default(STUDENT)
+  profileImage        String?
+  isVerified          Boolean                @default(false)
+  oauthAccounts       OAuthAccount[]
+  courses             Course[]               @relation("CourseCreator")
+  progress            Progress[]
+  communityMessages   CommunityMessage[]     @relation("CommunityMessages")
+  videoComments       VideoComment[]         @relation("VideoComments")
+  hostedMeetings      Meeting[]              @relation("HostedMeetings")
+  meetingParticipants MeetingParticipant[]
+  meetingChatMessages MeetingChatMessage[]
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+}
+
+model Meeting {
+  id              String               @id @default(cuid())
+  title           String
+  description     String?
+  thumbnail       String?
+  hostId          String
+  host            User                 @relation("HostedMeetings", fields: [hostId], references: [id], onDelete: Cascade)
+  roomName        String               @unique
+  joinCode        String               @unique
+  status          MeetingStatus        @default(SCHEDULED)
+  scheduledAt     DateTime
+  startedAt       DateTime?
+  endedAt         DateTime?
+  maxParticipants Int                  @default(50)
+  recordingUrl    String?
+  participants    MeetingParticipant[]
+  chatMessages    MeetingChatMessage[]
+  attendance      MeetingAttendance[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([hostId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+model MeetingParticipant {
+  id          String                 @id @default(cuid())
+  meetingId   String
+  meeting     Meeting                @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?                  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name        String
+  role        MeetingRole            @default(STUDENT)
+  joinedAt    DateTime               @default(now())
+  leftAt      DateTime?
+  attendance  MeetingAttendance?
+  createdAt   DateTime               @default(now())
+
+  @@unique([meetingId, userId])
+  @@index([meetingId])
+}
+
+model MeetingChatMessage {
+  id        String   @id @default(cuid())
+  meetingId String
+  meeting   Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name      String
+  message   String
+  createdAt DateTime @default(now())
+
+  @@index([meetingId])
+  @@index([createdAt])
+}
+
+model MeetingAttendance {
+  id            String              @id @default(cuid())
+  meetingId     String
+  meeting       Meeting             @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  participantId String              @unique
+  participant   MeetingParticipant  @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  duration      Int                 @default(0)
+  cameraOnTime  Int                 @default(0)
+  micOnTime     Int                 @default(0)
+  updatedAt     DateTime            @updatedAt
+
+  @@unique([meetingId, participantId])
+  @@index([meetingId])
 }
 
 model OAuthAccount {

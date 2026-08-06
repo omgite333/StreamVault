@@ -7,6 +7,7 @@ import progressRoutes from './progress.routes';
 import adminRoutes from './admin.routes';
 import communityRoutes from './community.routes';
 import commentRoutes from './comment.routes';
+import meetingRoutes from './meeting.routes';
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use('/progress', progressRoutes);
 router.use('/admin', adminRoutes);
 router.use('/community', communityRoutes);
 router.use('/videos', commentRoutes);
+router.use('/meetings', meetingRoutes);
 
 export default router;

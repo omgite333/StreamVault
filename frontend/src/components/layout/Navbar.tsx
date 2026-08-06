@@ -41,6 +41,9 @@ export const Navbar = () => {
       <NavLink to="/courses" className={navLinkClass}>
         Courses
       </NavLink>
+      <NavLink to="/meeting" className={navLinkClass}>
+        Live
+      </NavLink>
       {isAuthenticated && (
         <NavLink to="/community" className={navLinkClass}>
           Community
@@ -120,6 +123,9 @@ export const Navbar = () => {
           <div className="space-y-1">
             <NavLink to="/courses" className={mobileLinkClass} onClick={() => setMobileOpen(false)}>
               Courses
+            </NavLink>
+            <NavLink to="/meeting" className={mobileLinkClass} onClick={() => setMobileOpen(false)}>
+              Live
             </NavLink>
             {isAuthenticated && (
               <NavLink to="/community" className={mobileLinkClass} onClick={() => setMobileOpen(false)}>

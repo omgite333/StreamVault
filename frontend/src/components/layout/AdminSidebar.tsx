@@ -1,5 +1,5 @@
 import { NavLink, Link } from 'react-router-dom'
-import { BarChart3, BookOpen, FolderPlus, LayoutDashboard, MessageCircle, Users, ArrowLeft, X } from 'lucide-react'
+import { BarChart3, BookOpen, FolderPlus, LayoutDashboard, MessageCircle, Users, Video, ArrowLeft, X } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
 const links = [
@@ -7,6 +7,7 @@ const links = [
   { to: '/admin/courses', label: 'Courses', icon: BookOpen, end: true },
   { to: '/admin/courses/new', label: 'Create Course', icon: FolderPlus },
   { to: '/admin/upload', label: 'Upload Video', icon: BarChart3 },
+  { to: '/admin/meetings', label: 'Meetings', icon: Video },
   { to: '/admin/users', label: 'Users', icon: Users },
   { to: '/admin/community', label: 'Community', icon: MessageCircle },
   { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 },

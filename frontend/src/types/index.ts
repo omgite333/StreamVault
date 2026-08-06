@@ -125,3 +125,64 @@ export interface VideoComment {
 export interface CommunitySettings {
   enabled: boolean
 }
+
+export type MeetingStatus = 'SCHEDULED' | 'LIVE' | 'ENDED'
+export type MeetingRole = 'HOST' | 'COHOST' | 'STUDENT' | 'GUEST'
+
+export interface MeetingHost {
+  id: string
+  name: string
+  profileImage: string | null
+}
+
+export interface Meeting {
+  id: string
+  title: string
+  description: string | null
+  thumbnail: string | null
+  hostId: string
+  host: MeetingHost
+  roomName: string
+  joinCode: string
+  status: MeetingStatus
+  scheduledAt: string
+  startedAt: string | null
+  endedAt: string | null
+  maxParticipants: number
+  recordingUrl: string | null
+  createdAt: string
+  updatedAt: string
+  participants?: MeetingParticipant[]
+  _count?: {
+    participants: number
+    chatMessages?: number
+  }
+}
+
+export interface MeetingParticipant {
+  id: string
+  meetingId: string
+  userId: string | null
+  name: string
+  role: MeetingRole
+  joinedAt: string
+  leftAt: string | null
+  user?: MeetingHost | null
+}
+
+export interface MeetingChatMessage {
+  id: string
+  meetingId: string
+  userId: string | null
+  name: string
+  message: string
+  createdAt: string
+  user?: MeetingHost | null
+}
+
+export interface JoinMeetingData {
+  token: string
+  roomName: string
+  role: MeetingRole
+  meeting: Meeting
+}

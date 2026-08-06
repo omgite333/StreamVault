@@ -1,11 +1,12 @@
 /* oxlint-disable react/only-export-components */
-import { lazy } from 'react'
+import { Suspense, lazy } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 import { MainLayout } from '../layouts/MainLayout'
 import { AuthLayout } from '../layouts/AuthLayout'
 import { AdminLayout } from '../layouts/AdminLayout'
 import { ProtectedRoute } from '../components/protected/ProtectedRoute'
 import { AdminRoute } from '../components/protected/AdminRoute'
+import { PageLoader } from '../components/ui/page-loader'
 
 const HomePage = lazy(() => import('../pages/HomePage').then((m) => ({ default: m.HomePage })))
 const AboutPage = lazy(() => import('../pages/AboutPage').then((m) => ({ default: m.AboutPage })))
@@ -22,6 +23,14 @@ const ContinueWatchingPage = lazy(() =>
   import('../pages/ContinueWatchingPage').then((m) => ({ default: m.ContinueWatchingPage })),
 )
 const CommunityPage = lazy(() => import('../pages/CommunityPage').then((m) => ({ default: m.CommunityPage })))
+const MeetingListPage = lazy(() => import('../pages/MeetingListPage').then((m) => ({ default: m.MeetingListPage })))
+const CreateMeetingPage = lazy(() =>
+  import('../pages/CreateMeetingPage').then((m) => ({ default: m.CreateMeetingPage })),
+)
+const MeetingRoomPage = lazy(() => import('../pages/MeetingRoomPage').then((m) => ({ default: m.MeetingRoomPage })))
+const MeetingHistoryPage = lazy(() =>
+  import('../pages/MeetingHistoryPage').then((m) => ({ default: m.MeetingHistoryPage })),
+)
 const OAuthCallbackPage = lazy(() =>
   import('../pages/OAuthCallbackPage').then((m) => ({ default: m.OAuthCallbackPage })),
 )
@@ -43,6 +52,9 @@ const ManageUsersPage = lazy(() =>
 const ManageCommunityPage = lazy(() =>
   import('../pages/admin/ManageCommunityPage').then((m) => ({ default: m.ManageCommunityPage })),
 )
+const AdminManageMeetingsPage = lazy(() =>
+  import('../pages/admin/AdminManageMeetingsPage').then((m) => ({ default: m.AdminManageMeetingsPage })),
+)
 const AnalyticsPage = lazy(() => import('../pages/admin/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })))
 
 export const router = createBrowserRouter([
@@ -55,6 +67,7 @@ export const router = createBrowserRouter([
       { path: 'contact', element: <ContactPage /> },
       { path: 'oauth/callback', element: <OAuthCallbackPage /> },
       { path: 'courses', element: <CourseListPage /> },
+      { path: 'meeting', element: <MeetingListPage /> },
       {
         element: <ProtectedRoute />,
         children: [
@@ -62,11 +75,21 @@ export const router = createBrowserRouter([
           { path: 'profile', element: <ProfilePage /> },
           { path: 'continue-watching', element: <ContinueWatchingPage /> },
           { path: 'community', element: <CommunityPage /> },
+          { path: 'meeting/create', element: <CreateMeetingPage /> },
+          { path: 'meeting/history', element: <MeetingHistoryPage /> },
           { path: 'courses/:courseId', element: <CourseDetailsPage /> },
           { path: 'courses/:courseId/videos/:videoId', element: <VideoPlayerPage /> },
         ],
       },
     ],
+  },
+  {
+    path: '/meeting/:id',
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <MeetingRoomPage />
+      </Suspense>
+    ),
   },
   {
     path: '/auth',
@@ -89,6 +112,7 @@ export const router = createBrowserRouter([
           { path: 'upload', element: <UploadVideoPage /> },
           { path: 'users', element: <ManageUsersPage /> },
           { path: 'community', element: <ManageCommunityPage /> },
+          { path: 'meetings', element: <AdminManageMeetingsPage /> },
           { path: 'analytics', element: <AnalyticsPage /> },
         ],
       },

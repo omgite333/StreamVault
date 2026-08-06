@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { BookOpen, Clock, PlayCircle, TrendingUp } from 'lucide-react'
+import { BookOpen, Clock, PlayCircle, Radio, TrendingUp } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Skeleton } from '../components/ui/skeleton'
@@ -7,18 +7,23 @@ import { ContinueWatchingItem } from '../components/course/ContinueWatchingItem'
 import { useAuthStore } from '../store/auth.store'
 import { useCourses } from '../hooks/useCourses'
 import { useProgress } from '../hooks/useProgress'
+import { useMeetings } from '../hooks/useMeetings'
 import { usePageTitle } from '../hooks/usePageTitle'
-import { formatTotalTime } from '../lib/utils'
+import { formatDate, formatTotalTime } from '../lib/utils'
+import { Badge } from '../components/ui/badge'
 
 export const DashboardPage = () => {
   usePageTitle('Dashboard')
   const user = useAuthStore((s) => s.user)
   const { courses, isLoading } = useCourses()
   const { progress, isLoading: loadingProgress } = useProgress()
+  const { meetings, isLoading: loadingMeetings } = useMeetings('all')
 
   const watched = progress?.filter((p) => p.lastTimestamp > 0) ?? []
   const totalSeconds = watched.reduce((sum, p) => sum + p.lastTimestamp, 0)
   const completed = watched.filter((p) => p.completed).length
+  const liveMeetings = (meetings ?? []).filter((m) => m.status === 'LIVE')
+  const upcomingMeetings = (meetings ?? []).filter((m) => m.status === 'SCHEDULED')
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
@@ -65,6 +70,65 @@ export const DashboardPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-xl font-bold">
+            <Radio className="size-5 text-primary" />
+            Live Meetings
+          </h2>
+          <Link to="/meeting" className="text-sm text-primary hover:underline">
+            View all
+          </Link>
+        </div>
+
+        {loadingMeetings ? (
+          <Skeleton className="h-24" />
+        ) : liveMeetings.length === 0 && upcomingMeetings.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center">
+              <p className="mb-4 text-muted-foreground">No live or upcoming meetings right now.</p>
+              <Link to="/meeting/create">
+                <Button>
+                  <Radio />
+                  Schedule a Meeting
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {liveMeetings.slice(0, 3).map((meeting) => (
+              <Link key={meeting.id} to={`/meeting/${meeting.id}`}>
+                <Card className="h-full transition-colors hover:border-primary/50">
+                  <CardContent className="py-4">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold">{meeting.title}</p>
+                      <Badge className="bg-destructive text-destructive-foreground">Live</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Hosted by {meeting.host.name}</p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+            {upcomingMeetings.slice(0, 2).map((meeting) => (
+              <Link key={meeting.id} to={`/meeting/${meeting.id}`}>
+                <Card className="h-full transition-colors hover:border-primary/50">
+                  <CardContent className="py-4">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold">{meeting.title}</p>
+                      <Badge variant="secondary">Upcoming</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDate(meeting.scheduledAt)} · {meeting.host.name}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section>
         <div className="mb-4 flex items-center justify-between">
