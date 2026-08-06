@@ -29,7 +29,7 @@ export const changeRole = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(400, parsed.error.issues.map((issue) => issue.message).join(', '));
   }
 
-  const user = await adminService.changeUserRole(paramString(req, 'id'), parsed.data.role);
+  const user = await adminService.changeUserRole(paramString(req, 'id'), parsed.data.role, req.user!.id);
   res.json({ success: true, message: 'User role updated.', data: user });
 });
 
@@ -54,16 +54,16 @@ export const updateCommunitySettings = asyncHandler(async (req: Request, res: Re
     throw new ApiError(400, parsed.error.issues.map((issue) => issue.message).join(', '));
   }
 
-  const data = await adminService.setCommunitySettings(parsed.data.enabled);
+  const data = await adminService.setCommunitySettings(parsed.data.enabled, req.user!.id);
   res.json({ success: true, message: 'Community settings updated.', data });
 });
 
 export const removeCommunityMessage = asyncHandler(async (req: Request, res: Response) => {
-  const data = await adminService.communityRemove(paramString(req, 'id'));
+  const data = await adminService.communityRemove(req.user!.id, paramString(req, 'id'));
   res.json({ success: true, message: 'Community message deleted.', data });
 });
 
 export const removeCommunityComment = asyncHandler(async (req: Request, res: Response) => {
-  const data = await adminService.commentRemove(paramString(req, 'id'));
+  const data = await adminService.commentRemove(req.user!.id, paramString(req, 'id'));
   res.json({ success: true, message: 'Comment deleted.', data });
 });

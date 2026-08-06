@@ -1,4 +1,5 @@
 import { ApiError } from '../utils/ApiError';
+import { logger } from '../config/logger';
 import * as progressRepo from '../repositories/progress.repository';
 import { findVideoById } from '../repositories/video.repository';
 import type { UpdateProgressInput } from '../validations/progress.validation';
@@ -14,9 +15,12 @@ export const update = async (userId: string, input: UpdateProgressInput) => {
     throw new ApiError(404, 'Video not found.');
   }
 
-  return progressRepo.upsertProgress(userId, {
+  const progress = await progressRepo.upsertProgress(userId, {
     videoId: input.videoId,
     lastTimestamp: input.lastTimestamp,
     completed: input.completed,
   });
+
+  logger.debug({ userId, videoId: input.videoId, lastTimestamp: input.lastTimestamp, completed: input.completed }, 'Progress updated');
+  return progress;
 };

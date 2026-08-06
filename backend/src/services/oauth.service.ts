@@ -1,5 +1,6 @@
 import { ApiError } from '../utils/ApiError';
 import { env } from '../config/env';
+import { logger } from '../config/logger';
 import { generateAccessToken, generateRefreshToken } from '../utils/token';
 import { resolveObjectUrl } from './upload.service';
 import * as userRepo from '../repositories/user.repository';
@@ -13,6 +14,7 @@ const GOOGLE_SCOPES = 'openid email profile';
 
 export const parseProvider = (value: string): OAuthProvider => {
   if (value !== 'google') {
+    logger.warn({ provider: value }, 'Unsupported OAuth provider requested');
     throw new ApiError(400, 'Unsupported OAuth provider.');
   }
   return value;
@@ -66,12 +68,16 @@ export const handleCallback = async (code: string) => {
 
   const tokenData = (await tokenRes.json()) as { access_token?: string; error?: string };
   if (!tokenRes.ok || !tokenData.access_token) {
+    logger.warn({ provider: 'google', status: tokenRes.status }, 'OAuth code exchange failed');
     throw new ApiError(401, 'Failed to exchange the authorization code.');
   }
 
   const profileRes = await fetch(GOOGLE_PROFILE_URL, {
     headers: { Authorization: `Bearer ${tokenData.access_token}` },
   });
+  if (!profileRes.ok) {
+    logger.warn({ provider: 'google', status: profileRes.status }, 'OAuth profile fetch failed');
+  }
   const profileData = (await profileRes.json()) as {
     id?: string;
     email?: string;
@@ -117,9 +123,11 @@ export const handleCallback = async (code: string) => {
   }
 
   if (!user) {
+    logger.error({ provider: 'google', email: profile.email }, 'OAuth sign-in failed to resolve user');
     throw new ApiError(500, 'Failed to sign in with Google.');
   }
 
+  logger.info({ userId: user.id, email: profile.email, created }, 'Google OAuth sign-in');
   return {
     user: await withSignedAvatar(user),
     ...issueTokens(user),

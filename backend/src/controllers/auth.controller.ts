@@ -2,6 +2,7 @@ import { CookieOptions, Request, Response } from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
 import { env } from '../config/env';
+import { logger } from '../config/logger';
 import * as authService from '../services/auth.service';
 import * as oauthService from '../services/oauth.service';
 
@@ -35,7 +36,8 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-export const logout = asyncHandler(async (_req: Request, res: Response) => {
+export const logout = asyncHandler(async (req: Request, res: Response) => {
+  logger.info({ userId: req.user?.id }, 'User logged out');
   res.clearCookie(REFRESH_COOKIE, cookieOptions());
   res.json({ success: true, message: 'Logged out successfully.', data: null });
 });
@@ -66,16 +68,18 @@ export const changePassword = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const oauthRedirect = asyncHandler(async (req: Request, res: Response) => {
-  oauthService.parseProvider(req.params.provider as string);
+  const provider = oauthService.parseProvider(req.params.provider as string);
   const url = oauthService.getAuthorizeUrl();
+  logger.info({ provider }, 'OAuth authorization URL requested');
   res.json({ success: true, message: 'OAuth URL generated.', data: { url } });
 });
 
 export const oauthCallback = asyncHandler(async (req: Request, res: Response) => {
-  oauthService.parseProvider(req.params.provider as string);
+  const provider = oauthService.parseProvider(req.params.provider as string);
   const code = req.query.code as string | undefined;
 
   if (!code) {
+    logger.warn({ provider }, 'OAuth callback missing authorization code');
     return res.redirect(`${env.CLIENT_URL}/oauth/callback?error=${encodeURIComponent('Missing authorization code.')}`);
   }
 
@@ -85,6 +89,7 @@ export const oauthCallback = asyncHandler(async (req: Request, res: Response) =>
     res.redirect(`${env.CLIENT_URL}/oauth/callback?accessToken=${encodeURIComponent(accessToken)}`);
   } catch (error) {
     const message = error instanceof ApiError ? error.message : 'OAuth sign-in failed.';
+    logger.warn({ provider, error: message }, 'OAuth callback failed');
     res.redirect(`${env.CLIENT_URL}/oauth/callback?error=${encodeURIComponent(message)}`);
   }
 });

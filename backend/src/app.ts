@@ -1,10 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import morgan from 'morgan';
+import { pinoHttp } from 'pino-http';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { env } from './config/env';
+import { logger } from './config/logger';
 import { apiLimiter } from './middleware/rateLimiter';
 import { errorHandler, notFound } from './middleware/error';
 import routes from './routes';
@@ -12,6 +13,22 @@ import routes from './routes';
 const app = express();
 
 app.set('trust proxy', 1);
+
+const httpLogger = pinoHttp({
+  logger,
+  autoLogging: {
+    ignore: (req) => req.url === '/health',
+  },
+  serializers: {
+    req: (req) => ({
+      id: req.id,
+      method: req.method,
+      url: req.url,
+      remoteAddress: req.remoteAddress,
+    }),
+    res: (res) => ({ statusCode: res.statusCode }),
+  },
+});
 
 app.use(helmet());
 app.use(
@@ -24,7 +41,7 @@ app.use(compression());
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+app.use(httpLogger);
 
 app.get('/health', (_req, res) => {
   res.json({

@@ -1,4 +1,5 @@
 import { ApiError } from '../utils/ApiError';
+import { logger } from '../config/logger';
 import { resolveObjectUrl } from './upload.service';
 import * as commentRepo from '../repositories/comment.repository';
 import { findVideoById } from '../repositories/video.repository';
@@ -36,6 +37,7 @@ export const create = async (videoId: string, authorId: string, input: CreateCom
     content: input.content,
   });
 
+  logger.info({ commentId: comment.id, videoId, authorId }, 'Video comment posted');
   return withAuthorAvatar(comment);
 };
 
@@ -46,17 +48,20 @@ export const remove = async (userId: string, role: string, videoId: string, id: 
   }
 
   if (comment.authorId !== userId && role !== 'ADMIN') {
+    logger.warn({ commentId: id, userId, role }, 'Comment deletion denied');
     throw new ApiError(403, 'You can only delete your own comments.');
   }
 
   await commentRepo.deleteComment(id);
+  logger.info({ commentId: id, deletedBy: userId, asAdmin: role === 'ADMIN' }, 'Video comment deleted');
 };
 
-export const removeAsAdmin = async (id: string) => {
+export const removeAsAdmin = async (id: string, actorId?: string) => {
   const comment = await commentRepo.findCommentById(id);
   if (!comment) {
     throw new ApiError(404, 'Comment not found.');
   }
 
   await commentRepo.deleteComment(id);
+  logger.info({ commentId: id, actorId, asAdmin: true }, 'Video comment deleted by admin');
 };

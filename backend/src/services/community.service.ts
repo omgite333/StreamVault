@@ -1,4 +1,5 @@
 import { ApiError } from '../utils/ApiError';
+import { logger } from '../config/logger';
 import { resolveObjectUrl } from './upload.service';
 import * as communityRepo from '../repositories/community.repository';
 import * as appSettingRepo from '../repositories/app-setting.repository';
@@ -21,8 +22,9 @@ export const isEnabled = async () => {
   return setting ? setting.value === 'true' : true;
 };
 
-export const setEnabled = async (enabled: boolean) => {
+export const setEnabled = async (enabled: boolean, actorId?: string) => {
   await appSettingRepo.upsertSetting(COMMUNITY_ENABLED_KEY, String(enabled));
+  logger.info({ enabled, actorId }, 'Community enabled setting changed');
   return { enabled };
 };
 
@@ -49,6 +51,7 @@ export const create = async (userId: string, input: CreateMessageInput) => {
     authorId: userId,
   });
 
+  logger.info({ messageId: message.id, authorId: userId, parentId: message.parentId }, 'Community message posted');
   return withAuthorAvatar(message);
 };
 
@@ -59,17 +62,20 @@ export const remove = async (userId: string, role: string, id: string) => {
   }
 
   if (message.authorId !== userId && role !== 'ADMIN') {
+    logger.warn({ messageId: id, userId, role }, 'Community message deletion denied');
     throw new ApiError(403, 'You can only delete your own messages.');
   }
 
   await communityRepo.deleteMessage(id);
+  logger.info({ messageId: id, deletedBy: userId, asAdmin: role === 'ADMIN' }, 'Community message deleted');
 };
 
-export const removeAsAdmin = async (id: string) => {
+export const removeAsAdmin = async (id: string, actorId?: string) => {
   const message = await communityRepo.findMessageById(id);
   if (!message) {
     throw new ApiError(404, 'Message not found.');
   }
 
   await communityRepo.deleteMessage(id);
+  logger.info({ messageId: id, actorId, asAdmin: true }, 'Community message deleted by admin');
 };

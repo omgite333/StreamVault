@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { ApiError } from '../utils/ApiError';
+import { logger } from '../config/logger';
 import * as videoRepo from '../repositories/video.repository';
 import * as courseRepo from '../repositories/course.repository';
 import { generateStreamUrl, resolveObjectUrl } from './upload.service';
@@ -28,7 +29,7 @@ export const create = async (input: CreateVideoInput) => {
     throw new ApiError(404, 'Course not found.');
   }
 
-  return videoRepo.createVideo({
+  const video = await videoRepo.createVideo({
     courseId: input.courseId,
     sectionId: input.sectionId ?? null,
     title: input.title,
@@ -39,24 +40,33 @@ export const create = async (input: CreateVideoInput) => {
     order: input.order,
     allowDownload: input.allowDownload,
   });
+
+  logger.info({ videoId: video.id, courseId: input.courseId, title: input.title }, 'Video created');
+  return video;
 };
 
 export const update = async (id: string, input: UpdateVideoInput) => {
   await ensureExists(id);
-  return videoRepo.updateVideo(id, input as Prisma.VideoUpdateInput);
+  const video = await videoRepo.updateVideo(id, input as Prisma.VideoUpdateInput);
+  logger.info({ videoId: id }, 'Video updated');
+  return video;
 };
 
 export const remove = async (id: string) => {
   const video = await ensureExists(id);
   await videoRepo.deleteVideo(id);
+  logger.info({ videoId: id }, 'Video deleted');
   return video;
 };
 
 export const addResource = async (input: { videoId: string; title: string; fileUrl: string; type: string }) => {
   await ensureExists(input.videoId);
-  return videoRepo.createResource(input);
+  const resource = await videoRepo.createResource(input);
+  logger.info({ resourceId: resource.id, videoId: input.videoId }, 'Resource added to video');
+  return resource;
 };
 
 export const removeResource = async (id: string) => {
   await videoRepo.deleteResource(id);
+  logger.info({ resourceId: id }, 'Resource removed');
 };

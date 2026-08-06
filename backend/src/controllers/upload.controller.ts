@@ -8,6 +8,6 @@ export const getUploadUrl = asyncHandler(async (req: Request, res: Response) => 
     folder: 'videos' | 'thumbnails' | 'resources' | 'avatars';
   };
 
-  const { url, key } = await uploadService.generateUploadUrl(fileType, folder);
+  const { url, key } = await uploadService.generateUploadUrl(fileType, folder, req.user?.id);
   res.status(201).json({ success: true, message: 'Presigned upload URL generated.', data: { url, key } });
 });

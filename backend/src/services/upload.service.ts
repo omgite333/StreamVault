@@ -3,6 +3,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 import { env } from '../config/env';
 import { s3 } from '../config/s3';
+import { logger } from '../config/logger';
 import { ApiError } from '../utils/ApiError';
 import { extFromMime } from '../utils/file';
 
@@ -13,11 +14,12 @@ const requireBucket = (): string => {
   return env.AWS_BUCKET_NAME;
 };
 
-export const generateUploadUrl = async (fileType: string, folder: string) => {
+export const generateUploadUrl = async (fileType: string, folder: string, actorId?: string) => {
   const bucket = requireBucket();
   const ext = extFromMime(fileType);
   const key = `${folder}/${randomUUID()}${ext}`;
 
+  logger.info({ folder, fileType, key, actorId }, 'Presigned upload URL generated');
   const url = await getSignedUrl(
     s3,
     new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: fileType }),
@@ -29,6 +31,7 @@ export const generateUploadUrl = async (fileType: string, folder: string) => {
 
 export const generateStreamUrl = async (key: string) => {
   const bucket = requireBucket();
+  logger.debug({ key }, 'Presigned stream URL generated');
   return getSignedUrl(
     s3,
     new GetObjectCommand({ Bucket: bucket, Key: key }),
@@ -44,5 +47,6 @@ export const resolveObjectUrl = async (value: string | null | undefined) => {
 
 export const deleteObject = async (key: string) => {
   const bucket = requireBucket();
+  logger.info({ key }, 'Object deleted from storage');
   await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
 };

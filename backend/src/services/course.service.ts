@@ -1,5 +1,6 @@
 import { ApiError } from '../utils/ApiError';
 import { slugify } from '../utils/slug';
+import { logger } from '../config/logger';
 import { resolveObjectUrl } from './upload.service';
 import * as courseRepo from '../repositories/course.repository';
 import type { CreateCourseInput, UpdateCourseInput } from '../validations/course.validation';
@@ -37,26 +38,33 @@ export const create = async (input: CreateCourseInput, createdBy: string) => {
     attempt += 1;
   }
 
-  return courseRepo.createCourse({
+  const course = await courseRepo.createCourse({
     title: input.title,
     slug,
     description: input.description,
     thumbnail: input.thumbnail || undefined,
     createdBy,
   });
+
+  logger.info({ courseId: course.id, slug: course.slug, createdBy }, 'Course created');
+  return course;
 };
 
 export const update = async (id: string, input: UpdateCourseInput) => {
   await getById(id);
 
-  return courseRepo.updateCourse(id, {
+  const updated = await courseRepo.updateCourse(id, {
     ...(input.title !== undefined ? { title: input.title, slug: slugify(input.title) } : {}),
     ...(input.description !== undefined ? { description: input.description } : {}),
     ...(input.thumbnail !== undefined ? { thumbnail: input.thumbnail || null } : {}),
   });
+
+  logger.info({ courseId: id }, 'Course updated');
+  return updated;
 };
 
 export const remove = async (id: string) => {
   await getById(id);
   await courseRepo.deleteCourse(id);
+  logger.info({ courseId: id }, 'Course deleted');
 };
