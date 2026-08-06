@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Track } from 'livekit-client'
 import { PenLine, MessageSquare, Users } from 'lucide-react'
+import type { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import {
   useDataChannel,
   useLocalParticipant,
@@ -55,6 +56,7 @@ export const MeetingRoom = ({
   const [raisedHands, setRaisedHands] = useState<Record<string, RaisedHand>>({})
   const [strokes, setStrokes] = useState<WhiteboardStroke[]>([])
   const [isRecording, setIsRecording] = useState(false)
+  const [pinnedIdentity, setPinnedIdentity] = useState<string | null>(null)
   const { localParticipant } = useLocalParticipant()
   const participants = useParticipants()
   const raisedRef = useRef(false)
@@ -180,6 +182,24 @@ export const MeetingRoom = ({
       : t.source === Track.Source.Camera,
   )
 
+  const togglePin = (identity: string) => {
+    setPinnedIdentity((prev) => (prev === identity ? null : identity))
+  }
+
+  useEffect(() => {
+    if (!pinnedIdentity) return
+    const stillHere =
+      pinnedIdentity === localParticipant.identity || participants.some((p) => p.identity === pinnedIdentity)
+    if (!stillHere) setPinnedIdentity(null)
+  }, [pinnedIdentity, participants, localParticipant.identity])
+
+  const pinnedCamera = cameras.find((t) => t.participant.identity === pinnedIdentity) ?? null
+  const mainTrack = screenShares[0] ?? pinnedCamera ?? null
+  const thumbTracks = mainTrack
+    ? [...screenShares, ...cameras].filter((t) => t !== mainTrack)
+    : []
+  const tileKey = (t: TrackReferenceOrPlaceholder) => `${t.participant.identity}:${t.publication?.source ?? t.source}`
+
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden">
       <header className="flex items-center justify-between gap-3 border-b bg-background/80 px-4 py-2.5 backdrop-blur">
@@ -191,7 +211,7 @@ export const MeetingRoom = ({
           </Badge>
           <span className="hidden items-center gap-1 text-sm text-muted-foreground sm:inline-flex">
             <Users className="size-4" />
-            {participants.length} participant{participants.length === 1 ? '' : 's'}
+            {participants.length + 1} participant{participants.length + 1 === 1 ? '' : 's'}
           </span>
         </div>
         <span className="rounded-md bg-secondary px-2.5 py-1 font-mono text-xs tracking-wider">
@@ -201,31 +221,57 @@ export const MeetingRoom = ({
 
       <div className="relative flex flex-1 min-h-0">
         <div className="relative flex min-w-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 overflow-hidden p-4 pb-28">
-            {screenShares[0] && (
-              <div className="mb-2 aspect-video w-full">
-                <ParticipantVideoTile
-                  trackRef={screenShares[0]}
-                  raisedHand={raisedHands[screenShares[0].participant.identity]?.raised}
-                />
+          <div className="min-h-0 flex-1 overflow-hidden p-3 pb-36 sm:p-4 sm:pb-28">
+            {mainTrack && (
+              <>
+                <div className="mb-2 aspect-video w-full">
+                  <ParticipantVideoTile
+                    trackRef={mainTrack}
+                    raisedHand={raisedHands[mainTrack.participant.identity]?.raised}
+                    pinned={pinnedIdentity === mainTrack.participant.identity}
+                    onPin={() => togglePin(mainTrack.participant.identity)}
+                  />
+                </div>
+                {thumbTracks.length > 0 && (
+                  <div className="flex snap-x gap-2 overflow-x-auto pb-1">
+                    {thumbTracks.map((t) => (
+                      <div key={tileKey(t)} className="aspect-video w-44 shrink-0 snap-start sm:w-56">
+                        <ParticipantVideoTile
+                          trackRef={t}
+                          raisedHand={raisedHands[t.participant.identity]?.raised}
+                          pinned={pinnedIdentity === t.participant.identity}
+                          onPin={() => togglePin(t.participant.identity)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+            {!mainTrack && (
+              <div
+                className={cn(
+                  'gap-2',
+                  cameras.length === 1
+                    ? 'grid grid-cols-1'
+                    : 'flex snap-x overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3',
+                )}
+              >
+                {cameras.map((t) => (
+                  <div
+                    key={tileKey(t)}
+                    className={cn('aspect-video', cameras.length > 1 && 'w-56 shrink-0 snap-start sm:w-auto')}
+                  >
+                    <ParticipantVideoTile
+                      trackRef={t}
+                      raisedHand={raisedHands[t.participant.identity]?.raised}
+                      pinned={pinnedIdentity === t.participant.identity}
+                      onPin={() => togglePin(t.participant.identity)}
+                    />
+                  </div>
+                ))}
               </div>
             )}
-            <div
-              className={cn(
-                'grid gap-2',
-                screenShares.length > 0
-                  ? 'grid-cols-2 sm:grid-cols-3'
-                  : cameras.length === 1
-                    ? 'grid-cols-1'
-                    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-              )}
-            >
-              {cameras.map((t) => (
-                <div key={t.participant.identity} className="aspect-video">
-                  <ParticipantVideoTile trackRef={t} raisedHand={raisedHands[t.participant.identity]?.raised} />
-                </div>
-              ))}
-            </div>
           </div>
 
           <ControlBar
@@ -249,7 +295,7 @@ export const MeetingRoom = ({
         </div>
 
         {panel !== null && (
-          <div className="absolute inset-y-0 right-0 z-20 flex w-80 max-w-[85%] shrink-0 flex-col border-l bg-card shadow-2xl md:static md:shadow-none">
+          <div className="absolute bottom-32 right-0 top-0 z-20 flex w-full shrink-0 flex-col border-l bg-card shadow-2xl sm:bottom-24 sm:w-80 sm:max-w-[85%] md:static md:shadow-none">
             <div className="flex border-b">
               <button
                 type="button"
@@ -292,6 +338,8 @@ export const MeetingRoom = ({
                   isHost={isHost}
                   localRole={localRole}
                   raisedHands={raisedHands}
+                  pinnedIdentity={pinnedIdentity}
+                  onPin={togglePin}
                   onKick={onKick}
                   onMuteAll={muteAll}
                 />

@@ -46,7 +46,7 @@ export const ControlBar = ({
         <Button
           variant={isMicrophoneEnabled ? 'secondary' : 'destructive'}
           size="icon"
-          className="h-12 w-12 [&_svg]:size-6"
+          className="h-11 w-11 [&_svg]:size-5 sm:h-12 sm:w-12 sm:[&_svg]:size-6"
           onClick={() => localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled)}
           aria-label={isMicrophoneEnabled ? 'Mute microphone' : 'Unmute microphone'}
         >
@@ -55,7 +55,7 @@ export const ControlBar = ({
         <Button
           variant={isCameraEnabled ? 'secondary' : 'destructive'}
           size="icon"
-          className="h-12 w-12 [&_svg]:size-6"
+          className="h-11 w-11 [&_svg]:size-5 sm:h-12 sm:w-12 sm:[&_svg]:size-6"
           onClick={() => localParticipant.setCameraEnabled(!isCameraEnabled)}
           aria-label={isCameraEnabled ? 'Turn camera off' : 'Turn camera on'}
         >
@@ -64,7 +64,7 @@ export const ControlBar = ({
         <Button
           variant={isScreenShareEnabled ? 'destructive' : 'secondary'}
           size="icon"
-          className="h-12 w-12 [&_svg]:size-6"
+          className="h-11 w-11 [&_svg]:size-5 sm:h-12 sm:w-12 sm:[&_svg]:size-6"
           onClick={() => localParticipant.setScreenShareEnabled(!isScreenShareEnabled)}
           aria-label={isScreenShareEnabled ? 'Stop sharing screen' : 'Share screen'}
         >
@@ -83,7 +83,7 @@ export const ControlBar = ({
         <Button
           variant={participantsOpen ? 'secondary' : 'ghost'}
           size="icon"
-          className="h-12 w-12 [&_svg]:size-6"
+          className="h-11 w-11 [&_svg]:size-5 sm:h-12 sm:w-12 sm:[&_svg]:size-6"
           onClick={onToggleParticipants}
           aria-label="Toggle participants"
         >
@@ -92,7 +92,7 @@ export const ControlBar = ({
         <Button
           variant={chatOpen ? 'secondary' : 'ghost'}
           size="icon"
-          className="h-12 w-12 [&_svg]:size-6"
+          className="h-11 w-11 [&_svg]:size-5 sm:h-12 sm:w-12 sm:[&_svg]:size-6"
           onClick={onToggleChat}
           aria-label="Toggle chat"
         >
@@ -101,7 +101,7 @@ export const ControlBar = ({
         <Button
           variant={whiteboardOpen ? 'secondary' : 'ghost'}
           size="icon"
-          className="h-12 w-12 [&_svg]:size-6"
+          className="h-11 w-11 [&_svg]:size-5 sm:h-12 sm:w-12 sm:[&_svg]:size-6"
           onClick={onToggleWhiteboard}
           aria-label="Toggle whiteboard"
         >
@@ -111,7 +111,7 @@ export const ControlBar = ({
           <Button
             variant={isRecording ? 'destructive' : 'secondary'}
             size="icon"
-            className="h-12 w-12 [&_svg]:size-6"
+            className="h-11 w-11 [&_svg]:size-5 sm:h-12 sm:w-12 sm:[&_svg]:size-6"
             onClick={onToggleRecording}
             aria-label={isRecording ? 'Stop recording' : 'Start recording'}
           >
@@ -126,7 +126,7 @@ export const ControlBar = ({
         <Button
           variant="destructive"
           size="lg"
-          className="h-12 min-w-28 px-6 text-base [&_svg]:size-5"
+          className="h-11 min-w-28 px-6 text-base [&_svg]:size-5 sm:h-12"
           onClick={onLeave}
           disabled={leaving}
         >
